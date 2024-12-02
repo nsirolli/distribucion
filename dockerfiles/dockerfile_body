@@ -1,8 +1,12 @@
 RUN apt-get update && apt-get install -y git locales locales-all
 RUN pip install --upgrade pip
 
+ADD nginx_conf/ssl/pems/ /etc/nginx/conf.d/ssl/
+RUN chmod 644 /etc/nginx/conf.d/ssl/pems/*
+RUN update-ca-certificates
+
 ARG BRANCH
-RUN git clone https://github.com/matiasg/distribucion.git
+RUN git clone https://github.com/nsirolli/distribucion.git
 RUN cd distribucion && git checkout ${BRANCH:-master} && cd ..
 
 RUN cp distribucion/settings.py distribucion/distribucion/settings.py

@@ -1,8 +1,8 @@
-version: '3.4'
+#version: '3.4'
 
 services:
   db:
-    image: postgres
+    image: postgres:11.2
     volumes:
       - distribucion_pgdata:/var/lib/postgresql/data
     networks:
@@ -61,7 +61,7 @@ services:
       - 8000:8000
       - 8443:8443
     volumes:
-      - ./nginx_conf_de_repo:/etc/nginx/conf.d:ro
+      - ./nginx_conf:/etc/nginx/conf.d:ro
       - static_volume:/codigo/distribucion/static
     depends_on:
       - web
