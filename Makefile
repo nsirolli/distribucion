@@ -10,9 +10,6 @@ prebuild:
 uba_prebuild:
 	cat dockerfiles/dockerfile_header dockerfiles/uba_docker_setting dockerfiles/dockerfile_body > Dockerfile
 
-uba_certificados:
-	/bin/bash -c 'for t in cert chain fullchain privkey ; do /bin/cp -L /etc/letsencrypt/live/web24.dm.uba.ar/$t.pem nginx_conf/ssl/pems ; done'
-
 build:
 	docker build --build-arg BRANCH=${BRANCH} -t distribucion .
 	docker create -ti --name borrar distribucion bash

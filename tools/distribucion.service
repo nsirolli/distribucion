@@ -8,5 +8,5 @@ After=docker.service
 WantedBy=multi-user.target
 
 [Service]
-ExecStartPre=/bin/bash -c 'for t in cert chain fullchain privkey ; do /bin/cp -L /etc/letsencrypt/live/web24.dm.uba.ar/$t.pem /home/matiasg/distribucion/nginx_conf_de_repo/ssl ; done'
+ExecStartPre=/bin/bash -c 'for t in cert chain fullchain privkey ; do /bin/cp -L /etc/letsencrypt/live/web24.dm.uba.ar/$t.pem /home/nsirolli/distribucion/nginx_conf/ssl/pems ; done'
 ExecStart=/usr/local/bin/docker-compose -f /home/matiasg/distribucion/docker-compose.yaml up nginx
