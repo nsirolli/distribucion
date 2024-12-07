@@ -6,7 +6,6 @@ from enum import Enum
 
 from materias.models import Turno, Docente, Cuatrimestres, Cargos, TipoDocentes, choice_enum, telefono_validator
 
-
 class GrupoCuatrimestral(Enum):
     V = 'Verano'
     P = '1'

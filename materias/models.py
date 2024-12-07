@@ -34,6 +34,7 @@ class Cargos(Enum):
     JTP = 'Jefe de Trabajos Prácticos'
     Ay1 = 'Ayudante de 1ra'
     Ay2 = 'Ayudante de 2da'
+    Bec = 'Becario'
 
 
 class Dedicaciones(Enum):
@@ -47,10 +48,13 @@ class CargoDedicacion(Enum):
     excluir = {f'{Cargos.Ay2.name}{Dedicaciones.Exc.name}', f'{Cargos.Ay2.name}{Dedicaciones.Smx.name}'}
     CargoDedicacion = vars()
     for cargo in Cargos:
-        for dedicacion in Dedicaciones:
-            carded = f'{cargo.name}{dedicacion.name}'
-            if carded not in excluir:
-                CargoDedicacion[f'{cargo.name}{dedicacion.name}'] = f'{cargo.value} {dedicacion.value}'
+        if cargo.name != 'Bec':
+            for dedicacion in Dedicaciones:
+                carded = f'{cargo.name}{dedicacion.name}'
+                if carded not in excluir:
+                    CargoDedicacion[f'{cargo.name}{dedicacion.name}'] = f'{cargo.value} {dedicacion.value}'
+        else:
+            CargoDedicacion[f'{cargo.name}'] = f'{cargo.value}'
 
     @classmethod
     def con_cargo(cls, cargo):
@@ -283,6 +287,15 @@ class Docente(models.Model):
     @property
     def cargos_largos(self):
         return [CargoDedicacion[cd].value for cd in self.cargos]
+
+    @property
+    def es_simple(self):
+        # return self.cargos
+        cs = self.cargos
+        if len(cs) == 1:
+            if 'Par' in cs[0]:
+                return True
+        return False
 
 
 class Carga(models.Model):

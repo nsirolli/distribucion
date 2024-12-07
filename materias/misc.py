@@ -100,6 +100,11 @@ class Mapeos:
         return Docente.objects.filter(cargos__overlap=cardeds).all()
 
     @staticmethod
+    def becarios():
+        cardeds = ['Bec']
+        return Docente.objects.filter(cargos__overlap=cardeds).all()
+
+    @staticmethod
     def turnos_de_tipo_y_ac(tipo, ac):
         '''TipoDocentes -> AnnoCuatrimestre -> [Turno]'''
         return Mapeos.encuesta_tipo_turno(tipo).filter(anno=ac.anno, cuatrimestre=ac.cuatrimestre)

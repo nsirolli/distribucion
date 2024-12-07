@@ -90,7 +90,8 @@ def _turnos_maximos_por_cuatrimestre(cuatrimestre):
 
 def _turnos_minimos_por_cuatrimestre(cuatrimestre, docente):
     # TODO: queremos que dependa del docente?
-    return _turnos_maximos_por_cuatrimestre(cuatrimestre)
+    # return _turnos_maximos_por_cuatrimestre(cuatrimestre)
+    return 3 if docente.es_simple else _turnos_maximos_por_cuatrimestre(cuatrimestre)
 
 
 def _nombre_cuat_error(cuatrimestre):
@@ -113,8 +114,17 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
         if any(v > 1 for v in cuenta.values()):
             raise ValidationError('Hay turnos repetidos', code='invalid')
 
+        cuenta_dif = Counter(datos.get(f'opcion{c}{o}', '-1')
+                         for o in range(1, 3))
+        cuenta_dif.pop('-1', None)  # descarto opciones no completadas
+
         cargas = int(datos[f'cargas{c}'])
-        minimo = _turnos_minimos_por_cuatrimestre(c, docente)
+
+        if cargas > 0 and sum(cuenta_dif.values()) < 2:
+            raise ValidationError(f'Ninguna de las primeras dos opciones puede quedar vacía')
+
+        minimo = _turnos_minimos_por_cuatrimestre(c, docente) if tipo_docente in ['J','A1'] else _turnos_maximos_por_cuatrimestre(c)
+        
         if cargas > 0 and sum(cuenta.values()) < minimo:
             raise ValidationError(f'La cantidad mínima de turnos para el cuatrimestre {_nombre_cuat_error(c)} es {minimo}')
 
