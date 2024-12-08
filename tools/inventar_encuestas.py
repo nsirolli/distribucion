@@ -1,3 +1,4 @@
+import ipdb
 import random
 import logging
 from pathlib import Path
@@ -26,7 +27,7 @@ def inventar_encuestas(anno, cuatrimestre, tipo_de_docentes):
     now = timezone.now()
     tipo = TipoDocentes[tipo_de_docentes]
     cargos = set(Mapeos.cargos_de_tipos(tipo))
-    docentes = Mapeos.docentes_de_tipo(tipo)
+    docentes = Mapeos.docentes_de_tipo(tipo, anno)
     turnos = Mapeos.encuesta_tipo_turno(tipo).filter(anno=anno, cuatrimestre=cuatrimestre)
 
     for docente in docentes:
@@ -37,10 +38,11 @@ def inventar_encuestas(anno, cuatrimestre, tipo_de_docentes):
             Carga.objects.get_or_create(docente=docente, cargo=cargo,
                                         anno=anno, cuatrimestre=cuatrimestre)
 
-        for turno in set(random.choices(turnos, k=5)):
+        kmin = 3 if docente.es_simple else 5
+        for turno in set(random.choices(turnos, k=kmin)):
             for cargo in doc_cargos:
                 PreferenciasDocente.objects.create(docente=docente, turno=turno,
-                                                   cargo=cargo[:3],
+                                                   tipo_docente=tipo_de_docentes,
                                                    peso=random.randint(0, 20),
                                                    fecha_encuesta=now)
 
