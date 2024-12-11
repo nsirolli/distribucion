@@ -34,7 +34,7 @@ class Cargos(Enum):
     JTP = 'Jefe de Trabajos Prácticos'
     Ay1 = 'Ayudante de 1ra'
     Ay2 = 'Ayudante de 2da'
-    Bec = 'Becario'
+    Bec = 'Becario/Investigador'
 
 
 class Dedicaciones(Enum):

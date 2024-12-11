@@ -788,7 +788,7 @@ def _docentes_por_cargo():
     docentes = {(tipo_cargo.name, tipo_cargo.value): sorted(Mapeos.docentes_con_cargo_de_tipo(tipo_cargo),
                                                             key=lambda d: strxfrm(d.apellido_nombre))
                 for tipo_cargo in TipoDocentes}
-    docentes[('Bec', 'Becarios')] = sorted(Mapeos.becarios(), key=lambda d: strxfrm(d.apellido_nombre))
+    docentes[('Bec', 'Becario/Investigador')] = sorted(Mapeos.becarios(), key=lambda d: strxfrm(d.apellido_nombre))
     docentes[SIN_CARGO] = Docente.objects.filter(cargos__len=0)
     return docentes
 
