@@ -364,7 +364,7 @@ def cargas_docentes_anuales(request, anno, cuatrimestre):
         cargas_anno = Carga.objects.filter(anno=anno)
         docentes_y_cargos = {(docente, cargo)
                              for docente in Docente.objects.filter(cargos__len__gt=0).all()
-                             for cargo in docente.cargos}
+                             for cargo in docente.cargos if not cargo == 'Bec'}
         docentes_y_cargos |= {(carga.docente, carga.cargo) for carga in cargas_anno}
         por_tipo_cargo = {tipo: {(docente, cargo)
                                  for (docente, cargo) in docentes_y_cargos if Mapeos.tipos_de_cargo(cargo) == tipo}
