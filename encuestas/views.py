@@ -91,7 +91,7 @@ def _turnos_maximos_por_cuatrimestre(cuatrimestre):
 def _turnos_minimos_por_cuatrimestre(cuatrimestre, docente):
     # TODO: queremos que dependa del docente?
     # return _turnos_maximos_por_cuatrimestre(cuatrimestre)
-    return 3 if docente.es_simple else _turnos_maximos_por_cuatrimestre(cuatrimestre)
+    return 3 if docente.es_simple and cuatrimestre != 'V' else _turnos_maximos_por_cuatrimestre(cuatrimestre)
 
 
 def _nombre_cuat_error(cuatrimestre):
