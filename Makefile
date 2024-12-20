@@ -36,11 +36,14 @@ empezar:
 terminar:
 	docker-compose down
 
+#FIXME el scraping no funciona con la html actual
 populate:
-	docker-compose run --rm web python tools/current_html_to_db.py V 2019
-	docker-compose run --rm web python tools/current_html_to_db.py 1 2019
+	docker-compose run --rm web python tools/current_html_to_db.py 2024 1
+	docker-compose run --rm web python tools/current_html_to_db.py 2024 2
 
-demo: build populate
+#ver FIXME arriba
+#demo: build populate
+demo: build 
 	docker-compose run --rm web python tools/inventar_encuestas.py -a 2019 -c S -d J
 	docker-compose run --rm web python tools/inventar_encuestas.py -a 2019 -c S -d A1
 	docker-compose run --rm web python tools/inventar_encuestas.py -a 2019 -c S -d A2
@@ -57,3 +60,8 @@ restore:
 	docker run --rm -i -v distribucion_pgdata:/target busybox tar -xzC /target < $(ULTIMO_BACKUP)
 	@echo Levanto el sistema de nuevo
 	docker-compose start
+
+debug:
+	docker-compose up -d db
+	@echo -e "\n sugerencia 1: una vez en al consola, correr\n python manage.py runserver 0.0.0.0:8000"
+	docker-compose run --rm -p 8000:8000 bash

@@ -1,7 +1,8 @@
 RUN apt-get update && apt-get install -y git locales locales-all
 RUN pip install --upgrade pip
 
-ADD nginx_conf/ssl/pems/ /etc/nginx/conf.d/ssl/
+RUN mkdir -p /etc/nginx/conf.d/ssl/pems
+ADD nginx_conf/ssl/pems/ /etc/nginx/conf.d/ssl/pems/
 RUN chmod 644 /etc/nginx/conf.d/ssl/pems/*
 RUN update-ca-certificates
 
