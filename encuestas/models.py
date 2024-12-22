@@ -3,6 +3,7 @@ from simple_history.models import HistoricalRecords
 from django.core.validators import MaxValueValidator
 from django.utils import timezone
 from enum import Enum
+from datetime import datetime
 
 from materias.models import Turno, Docente, Cuatrimestres, Cargos, TipoDocentes, choice_enum, telefono_validator
 
@@ -51,8 +52,19 @@ class CargasPedidas(models.Model):
 
 
 class EncuestasHabilitadas(models.Model):
-    anno = models.IntegerField()
+    mes = datetime.today().month
+    anno_def = datetime.today().year
+    if mes > 8:
+        anno_def += 1
+    anno = models.IntegerField(default = anno_def)
     cuatrimestres = models.CharField(max_length=3, choices=choice_enum(GrupoCuatrimestral))
+    minimo_de_opciones = models.PositiveIntegerField(validators=[MaxValueValidator(6)], default=5)
+    minimo_de_opciones_simple = models.PositiveIntegerField(validators=[MaxValueValidator(6)], default=3)
+    maximo_de_opciones = models.PositiveIntegerField(validators=[MaxValueValidator(6)], default=6)
+    opciones_dificiles = models.PositiveIntegerField(validators=[MaxValueValidator(6)], default=2)
+    minimo_de_opciones_verano = models.PositiveIntegerField(validators=[MaxValueValidator(6)], default=2)
+    maximo_de_opciones_verano = models.PositiveIntegerField(validators=[MaxValueValidator(6)], default=3)
+    opciones_dificiles_verano = models.PositiveIntegerField(validators=[MaxValueValidator(6)], default=2)
     tipo_docente = models.CharField(max_length=2, choices=choice_enum(TipoDocentes))
     desde = models.DateTimeField()
     hasta = models.DateTimeField()
@@ -71,6 +83,24 @@ class EncuestasHabilitadas(models.Model):
         if momento is None:
             momento = timezone.now()
         return self.desde <= momento <= self.hasta
+
+    def opciones(self):
+        res = (
+            {
+                'tmin':self.minimo_de_opciones,\
+                'tminS':self.minimo_de_opciones_simple,\
+                'tmax':self.maximo_de_opciones,\
+                'tdif':self.opciones_dificiles\
+            },
+            {
+                'tmin':self.minimo_de_opciones_verano,\
+                'tminS':self.minimo_de_opciones_verano,\
+                'tmax':self.maximo_de_opciones_verano,\
+                'tdif':self.opciones_dificiles_verano\
+            }
+               )
+        return res
+
 
     @staticmethod
     def esta_habilitada(anno, cuatrimestres, tipo_docente, momento):

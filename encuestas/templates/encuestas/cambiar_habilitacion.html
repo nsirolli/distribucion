@@ -19,7 +19,18 @@
 <body>
     <form action="{% url 'encuestas:cambiar_habilitacion' habilitacion.id %}" method="post">
     {% csrf_token %}
-    {{ form.as_table }}
+    {% for field in form %}
+        <div class="form-row">  {# Add a class for styling #}
+            {{ field.label_tag }} {{ field }}
+            {% if field.errors %}
+                <div class="errorlist">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+        </div>
+		</br>
+    {% endfor %}
     <input type="submit" value="salvar">
     </form>
+<p> No se pueden dejar las opciones vacías para Verano; si no está entre los cuatrimestres en cuestión, sus opciones serán omitidas. </p>
 </body>

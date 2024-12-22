@@ -20,9 +20,20 @@
 <body>
     <form action="{% url 'encuestas:agregar_habilitacion' %}" method="post">
     {% csrf_token %}
-    {{ form.as_table }}
+    {% for field in form %}
+        <div class="form-row">  {# Add a class for styling #}
+            {{ field.label_tag }} {{ field }}
+            {% if field.errors %}
+                <div class="errorlist">
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+        </div>
+		</br>
+    {% endfor %}
     <input class="actuar" type="submit" value="salvar">
     <a class="actuar" href="{% url 'encuestas:administrar_habilitadas' %}">Cancelar</a>
     </form>
+<p> No se pueden dejar las opciones vacías para Verano; si no está entre los cuatrimestres en cuestión, sus opciones serán omitidas. </p>
 </body>
 

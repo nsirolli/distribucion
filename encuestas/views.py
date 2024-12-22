@@ -80,6 +80,7 @@ def cambiar_habilitacion(request, habilitacion_id):
 
 
 def _turnos_maximos_por_cuatrimestre(cuatrimestre):
+    # DEPRECATED
     maximos = {
         Cuatrimestres.V.name: 2,
         Cuatrimestres.P.name: 5,
@@ -89,7 +90,7 @@ def _turnos_maximos_por_cuatrimestre(cuatrimestre):
 
 
 def _turnos_minimos_por_cuatrimestre(cuatrimestre, docente):
-    # TODO: queremos que dependa del docente?
+    # DEPRECATED
     # return _turnos_maximos_por_cuatrimestre(cuatrimestre)
     return 3 if docente.es_simple and cuatrimestre != 'V' else _turnos_maximos_por_cuatrimestre(cuatrimestre)
 
@@ -105,28 +106,34 @@ def _nombre_cuat_error(cuatrimestre):
 def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
     fecha_encuesta = timezone.now()
     docente = Docente.objects.get(pk=datos['docente'])
+    opc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres).opciones()
 
     # chequeos
     for c in cuatrimestres:
+        opc = opc[1] if c == 'V' else opc[0]
+        tmin = opc['tminS'] if docente.es_simple else opc['tmin']
+        tmax = opc['tmax']
+        tdif = opc['tdif']
+            
         cuenta = Counter(datos.get(f'opcion{c}{o}', '-1')
-                         for o in range(1, 6))
+                         for o in range(1, tmax+1))
         cuenta.pop('-1', None)  # descarto opciones no completadas
         if any(v > 1 for v in cuenta.values()):
             raise ValidationError('Hay turnos repetidos', code='invalid')
 
         cuenta_dif = Counter(datos.get(f'opcion{c}{o}', '-1')
-                         for o in range(1, 3))
+                         for o in range(1, tdif+1))
         cuenta_dif.pop('-1', None)  # descarto opciones no completadas
 
         cargas = int(datos[f'cargas{c}'])
 
-        if cargas > 0 and sum(cuenta_dif.values()) < 2:
+        if cargas > 0 and sum(cuenta_dif.values()) < tdif:
             raise ValidationError(f'Ninguna de las primeras dos opciones puede quedar vacía')
 
-        minimo = _turnos_maximos_por_cuatrimestre(c) if tipo_docente == 'P' else _turnos_minimos_por_cuatrimestre(c,docente)
+        # minimo = _turnos_maximos_por_cuatrimestre(c) if tipo_docente == 'P' else _turnos_minimos_por_cuatrimestre(c,docente)
         
-        if cargas > 0 and sum(cuenta.values()) < minimo:
-            raise ValidationError(f'La cantidad mínima de turnos para el cuatrimestre {_nombre_cuat_error(c)} es {minimo}')
+        if cargas > 0 and sum(cuenta.values()) < tmin:
+            raise ValidationError(f'La cantidad mínima de turnos para el cuatrimestre {_nombre_cuat_error(c)} es {tmin}')
 
     email = datos['email']
     telefono = datos['telefono']
@@ -155,7 +162,7 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
         pedidas[Cuatrimestres[cuatrimestre]] = cargas
 
         opciones_cuat = []
-        for opcion in range(1, _turnos_maximos_por_cuatrimestre(cuatrimestre) + 1):
+        for opcion in range(1, tmax + 1):
             opcion_id = int(datos[f'opcion{cuatrimestre}{opcion}'])
             if opcion_id >= 0:
                 turno = Turno.objects.get(pk=opcion_id)
@@ -188,7 +195,7 @@ def _generar_docentes(anno, cuatrimestres, tipo_docente):
     return docentes
 
 
-def _generar_contexto(anno, cuatrimestre, tipo_docente):
+def _generar_contexto(anno, cuatrimestre, tipo_docente, cuatrimestres):
     tipo = TipoDocentes[tipo_docente]
     ac = AnnoCuatrimestre(anno, cuatrimestre)
     turnos_ac = Mapeos.turnos_de_tipo_y_ac(tipo, ac)
@@ -199,10 +206,11 @@ def _generar_contexto(anno, cuatrimestre, tipo_docente):
                                  turno.dificil_de_cubrir, Mapeos.necesidades_no_cubiertas(turno, tipo) <= 0)
                for turno in sorted(turnos_ac, key=lambda t: (strxfrm(t.materia.nombre), t.numero))]
 
-    cantidad_de_opciones = 2 if cuatrimestre == Cuatrimestres.V.name else 5
+    opc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres,tipo_docente=tipo_docente).opciones()
+    opc = opc[1] if cuatrimestre == 'V' else opc[0]
+    cantidad_de_opciones = opc['tmax']
     opciones = [OpcionesParaEncuesta(i, i <= (cantidad_de_opciones - 1) // 2, -1, 1)
                 for i in range(1, cantidad_de_opciones + 1)]  # las opciones 1 y 2 tienen que ser de las difíciles
-
 
     return OpcionesPorCuatrimestre(opciones, turnos)
 
@@ -258,7 +266,7 @@ def encuesta(request, anno, cuatrimestres, tipo_docente):
     if not EncuestasHabilitadas.esta_habilitada(anno, cuatrimestres, tipo_docente, timezone.now()):
         return HttpResponse(status=403, content="La encuesta que querés llenar no está habilitada.")
 
-    opciones_por_cuatrimestre = {Cuatrimestres[cuatri]: _generar_contexto(anno, cuatri, tipo_docente)
+    opciones_por_cuatrimestre = {Cuatrimestres[cuatri]: _generar_contexto(anno, cuatri, tipo_docente, cuatrimestres)
                                  for cuatri in cuatrimestres}
 
     context = {
