@@ -127,11 +127,12 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
 
         cargas = int(datos[f'cargas{c}'])
 
+        if cargas ==  0 and sum(cuenta.values()) > 0:
+            raise ValidationError(f'Si la cantidad de cargas para el cuatrimestre {_nombre_cuat_error(c)} es 0, los turnos preferidos para ese cuatrimestre deben quedar vacíos')
+
         if cargas > 0 and sum(cuenta_dif.values()) < tdif:
             raise ValidationError(f'Ninguna de las primeras {tdif} opciones para el cuatrimestre {_nombre_cuat_error(c)} puede quedar vacía')
 
-        # minimo = _turnos_maximos_por_cuatrimestre(c) if tipo_docente == 'P' else _turnos_minimos_por_cuatrimestre(c,docente)
-        
         if cargas > 0 and sum(cuenta.values()) < tmin:
             raise ValidationError(f'La cantidad mínima de turnos para el cuatrimestre {_nombre_cuat_error(c)} es {tmin}')
 
