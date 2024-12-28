@@ -75,7 +75,7 @@ class Mapeos:
                    Cargos.JTP.name: TipoDocentes.J,
                    Cargos.Ay1.name: TipoDocentes.A1,
                    Cargos.Ay2.name: TipoDocentes.A2,
-                   # Cargos.Bec.name: TipoDocentes.BI
+                   Cargos.Bec.name: TipoDocentes.BI
                    }
         return el_mapa[cargodedicacion[:3]]
 
