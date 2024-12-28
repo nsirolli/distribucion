@@ -276,7 +276,7 @@ def administrar_necesidades_docentes(request, anno, cuatrimestre):
     cargas = Carga.objects.filter(anno=anno, cuatrimestre=cuatrimestre)
     recursos = Counter(Mapeos.tipo_de_carga(carga) for carga in cargas)
 
-    necesidades_y_recursos = {tipo: (necesidades[tipo], recursos[tipo]) for tipo in TipoDocentes}
+    necesidades_y_recursos = {tipo: (necesidades[tipo], recursos[tipo]) for tipo in TipoDocentes if tipo != TipoDocentes.BI}
 
     return administrar_general(request, anno, cuatrimestre, key_to_field, 'materias/administrar_necesidades_docentes.html',
                                seccion='docentes', necesidades_y_recursos=necesidades_y_recursos)
@@ -788,7 +788,7 @@ def _docentes_por_cargo():
     docentes = {(tipo_cargo.name, tipo_cargo.value): sorted(Mapeos.docentes_con_cargo_de_tipo(tipo_cargo),
                                                             key=lambda d: strxfrm(d.apellido_nombre))
                 for tipo_cargo in TipoDocentes}
-    docentes[('Bec', 'Becario/Investigador')] = sorted(Mapeos.becarios(), key=lambda d: strxfrm(d.apellido_nombre))
+    docentes[('BI', 'Bec/Inv')] = sorted(Mapeos.becarios(), key=lambda d: strxfrm(d.apellido_nombre))
     docentes[SIN_CARGO] = Docente.objects.filter(cargos__len=0)
     return docentes
 

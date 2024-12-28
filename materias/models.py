@@ -69,6 +69,7 @@ class TipoDocentes(Enum):
     J = 'JTP'
     A1 = 'Ay1'
     A2 = 'Ay2'
+    BI = 'Bec/Inv'
 
     def __ge__(self, otro):
         ordenados = [TipoDocentes.A2, TipoDocentes.A1, TipoDocentes.J, TipoDocentes.P]

@@ -20,6 +20,7 @@ class Mapeos:
                      TipoDocentes.J: [Cargos.JTP],
                      TipoDocentes.A1: [Cargos.Ay1],
                      TipoDocentes.A2: [Cargos.Ay2],
+                     TipoDocentes.BI: [Cargos.Bec],
                      }
 
     cargos_a_tipo = {
@@ -34,6 +35,7 @@ class Mapeos:
         Cargos.JTP: TipoDocentes.J,
         Cargos.Ay1: TipoDocentes.A1,
         Cargos.Ay2: TipoDocentes.A2,
+        # Cargos.Bec: TipoDocentes.BI,
     }
 
     @staticmethod
@@ -72,7 +74,8 @@ class Mapeos:
                    Cargos.Vis.name: TipoDocentes.P,
                    Cargos.JTP.name: TipoDocentes.J,
                    Cargos.Ay1.name: TipoDocentes.A1,
-                   Cargos.Ay2.name: TipoDocentes.A2
+                   Cargos.Ay2.name: TipoDocentes.A2,
+                   # Cargos.Bec.name: TipoDocentes.BI
                    }
         return el_mapa[cargodedicacion[:3]]
 
