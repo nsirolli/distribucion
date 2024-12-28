@@ -63,5 +63,6 @@ restore:
 
 debug:
 	docker-compose up -d db
-	@echo -e "\n sugerencia 1: una vez en al consola, correr\n python manage.py runserver 0.0.0.0:8000"
+	@echo -e "\n sugerencia 1: una vez en la consola, correr\n\n python manage.py runserver 0.0.0.0:8000"
+	@echo -e "\n sugerencia 2: puede ser necesario correr\n\n python manage.py makemigrations\n python manage.py migrate\n"
 	docker-compose run --rm -p 8000:8000 bash

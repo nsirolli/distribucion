@@ -106,11 +106,11 @@ def _nombre_cuat_error(cuatrimestre):
 def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
     fecha_encuesta = timezone.now()
     docente = Docente.objects.get(pk=datos['docente'])
-    opc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres).opciones()
+    opcc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres,tipo_docente=tipo_docente).opciones()
 
     # chequeos
     for c in cuatrimestres:
-        opc = opc[1] if c == 'V' else opc[0]
+        opc = opcc[1] if c == 'V' else opcc[0]
         tmin = opc['tminS'] if docente.es_simple else opc['tmin']
         tmax = opc['tmax']
         tdif = opc['tdif']
