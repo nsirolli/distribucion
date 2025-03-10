@@ -210,8 +210,9 @@ def _generar_contexto(anno, cuatrimestre, tipo_docente, cuatrimestres):
     opc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres,tipo_docente=tipo_docente).opciones()
     opc = opc[1] if cuatrimestre == 'V' else opc[0]
     cantidad_de_opciones = opc['tmax']
-    opciones = [OpcionesParaEncuesta(i, i <= (cantidad_de_opciones - 1) // 2, -1, 1)
-                for i in range(1, cantidad_de_opciones + 1)]  # las opciones 1 y 2 tienen que ser de las difíciles
+    cantidad_de_dificiles = opc['tdif']
+    opciones = [OpcionesParaEncuesta(i, i <= cantidad_de_dificiles, -1, 1)
+                for i in range(1, cantidad_de_opciones + 1)]
 
     return OpcionesPorCuatrimestre(opciones, turnos)
 
