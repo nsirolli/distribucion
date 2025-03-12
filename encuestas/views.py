@@ -108,6 +108,8 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
     docente = Docente.objects.get(pk=datos['docente'])
     opcc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres,tipo_docente=tipo_docente).opciones()
 
+    tdict = {} # para guardar la cantidad opciones ofrecidas
+
     # chequeos
     for c in cuatrimestres:
         opc = opcc[1] if c == 'V' else opcc[0]
@@ -136,6 +138,8 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
         if cargas > 0 and sum(cuenta.values()) < tmin:
             raise ValidationError(f'La cantidad mínima de turnos para el cuatrimestre {_nombre_cuat_error(c)} es {tmin}')
 
+        tdict[c] = sum(cuenta.values())
+
     email = datos['email']
     telefono = datos['telefono']
 
@@ -155,6 +159,7 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente):
     opciones = {}
     pedidas = {}
     for cuatrimestre in cuatrimestres:
+        tmax = tdict[cuatrimestre] # cantidad de turnos ofrecidos este cuatrimestre
         # CargasPedidas
         cargas = int(datos[f'cargas{cuatrimestre}'])
         cargas_pedidas = CargasPedidas.objects.create(docente=docente, anno=anno, cuatrimestre=cuatrimestre,
