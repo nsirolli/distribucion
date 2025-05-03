@@ -1,0 +1,34 @@
+{% load bootstrap5 %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Encuesta de distribución docente</title>
+    {% bootstrap_css %}
+    {% bootstrap_javascript %}
+    <style>
+        .question-card {
+            margin-bottom: 1.5rem;
+            border-left: 4px solid #0d6efd;
+        }
+        .form-check-label {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    <!-- Main Content -->
+    <div class="container">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-5 py-3 bg-dark text-white text-center">
+        <div class="container">
+			<p class="mb-0">© {{ anno }} Departamento de Matemática - FCEyN, UBA</p>
+        </div>
+    </footer>
+</body>
+</html>

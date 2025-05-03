@@ -1,14 +1,38 @@
-<!DOCTYPE html>
-
+{% extends "base.html" %}
 {% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="{% static 'encuestas/encuestas.css' %}">
+<style>
+  .confirmation-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+  }
+  .data-table {
+    width: 100%;
+    margin-bottom: 1.5rem;
+  }
+  .data-table td {
+    padding: 0.5rem;
+    vertical-align: top;
+  }
+</style>
+{% endblock %}
 
-<h1>Gracias por completar la encuesta</h1>
+{% block content %}
 
-<h2>Se salvaron estas opciones para {{ docente }}</h2>
+<div class="bg-primary text-white p-3 mb-4 rounded">
+    <h1 class="mb-0">Gracias por completar la encuesta</h1>
+</div>
 
+  <div class="confirmation-section">
+    <h3 class="mb-3">Se guardaron estas opciones para {{ docente }}</h3>
+    
     {% for cuatrimestre, opciones_cuat in opciones.items %}
-    <div id=pregunta>Opciones para el
+    <div class="mb-4">
+      <h4 class="h5 mb-2">
+        Opciones para el 
         {% if cuatrimestre.name == "P" %}
         primer cuatrimestre
         {% elif cuatrimestre.name == "S" %}
@@ -16,17 +40,41 @@
         {% else %}
         cuatrimestre de verano
         {% endif %}
+      </h4>
+      
+	  {% if opciones_cuat %}
+      <table class="data-table table table-bordered">
+        {% for opcion in opciones_cuat %}
+        <tr>
+          <td>
+            <strong>{{ opcion.turno.str_corto }}</strong>
+            <div class="text-muted">{{ opcion.turno.horarios_info.diayhora }}</div>
+          </td>
+          <td>Peso: {{ opcion.peso }}</td>
+        </tr>
+        {% endfor %}
+      </table>
+	  {% else %}
+	  Sin opciones
+	  {% endif %}
     </div>
-    <table>
-            {% for opcion in opciones_cuat %}
-            <tr><td>{{ opcion.turno.str_corto }} ({{ opcion.turno.horarios_info.diayhora }})</td><td>Peso: {{ opcion.peso }}</td></tr>
-            {% endfor %}
-    </table>
     {% endfor %}
+  </div>
 
-<h2>Otros datos guardados</h2>
-<dl>
-    <dt>email:</dt>       <dd>{{ email }}</dd>
-    <dt>teléfono:</dt>    <dd>{{ telefono }}</dd>
-    <dt>comentarios:</dt> <dd>{{ comentario }}</dd>
-</dl>
+  <div class="confirmation-section">
+    <h3 class="mb-3">Otros datos guardados</h3>
+    <dl class="row">
+      <dt class="col-sm-3">Correo electrónico:</dt>
+      <dd class="col-sm-9">{{ email }}</dd>
+      
+      <dt class="col-sm-3">Teléfono:</dt>
+      <dd class="col-sm-9">{{ telefono }}</dd>
+      
+      <dt class="col-sm-3">Comentarios:</dt>
+      <dd class="col-sm-9">{{ comentario }}</dd>
+    </dl>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

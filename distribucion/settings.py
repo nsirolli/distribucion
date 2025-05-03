@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django_extensions',
     'django.contrib.postgres',
     'simple_history',  # para poder hacer rollback. https://django-simple-history.readthedocs.io/en/2.7.2/index.html
+    'bootstrap5',
 ]
 
 MIDDLEWARE = [
@@ -71,7 +72,10 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
             ],
-        },
+            'libraries': {
+                'bootstrap5': 'bootstrap5.templatetags.bootstrap5',
+            }       
+                 },
     },
 ]
 

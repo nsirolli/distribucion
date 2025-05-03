@@ -1,111 +1,180 @@
-<!DOCTYPE html>
-
+{% extends "base.html" %}
 {% load static %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
 <link rel="stylesheet" type="text/css" href="{% static 'encuestas/encuestas.css' %}">
+<style>
+  .form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+  }
+  .form-title {
+    color: #0d6efd;
+    margin-bottom: 1rem;
+    font-weight: 600;
+  }
+  .form-control {
+    margin-bottom: 1rem;
+  }
+  textarea.form-control {
+    height: auto;
+  }
+</style>
+{% endblock %}
 
-{% if messages %}
-<div class="messages">
+{% block content %}
+<div class="container my-4">
+  {% if messages %}
+  <div class="mb-4">
     {% for message in messages %}
-    <br>{% if message.tags %} [{{ message.tags }}] {% endif %} {{ message }}</br>
-    {% endfor %}
-</div>
-{% endif %}
-
-<div id="titulo">Encuesta para {{ anno }}, cuatrimestre{{ cuatrimestres_texto|length|pluralize }}: {{ cuatrimestres_texto }}</div>
-
-<hr>
-<div id="subtitulo">Tener en cuenta</div>
-<ul>
-    <li>En cada turno pedido se debe poner un peso entre 0 y 20. Cuanto mayor es el peso, menor es la probabilidad de tener que dictar ese turno.</li>
-    <li>Los pesos de cada docente se normalizan con norma 1.</li>
-</ul>
-
-<form action="{% url 'encuestas:encuesta' anno cuatrimestres tipo_docente %}" method="post">
-{% csrf_token %}
-
-<hr>
-<p>
-    <div id="subtitulo">Docente</div>
-    <div class="grande">
-        <select name="docente">
-            {% for docente in docentes %}
-            <option value="{{ docente.id }}"
-                    {% if docente.id == docente_selected %}selected{% endif %}
-            >{{ docente.nombre }}</option>
-            {% endfor %}
-        </select>
+    <div class="alert alert-{{ message.tags }}">
+      {% if message.tags %}<strong>{{ message.tags|title }}</strong>{% endif %} {{ message }}
     </div>
-</p>
-<p>
-    <div id="subtitulo">Cantidad de turnos que tiene que cubrir en el período de la encuesta</div>
-    <input id=cargas type="number" name="cargas_declaradas" min=0 max=6 value=
-                         {% if cuatrimestres_texto == "todos" %}2
-                         {% else %}1{% endif %}
-    >
-</p>
+    {% endfor %}
+  </div>
+  {% endif %}
 
-<hr>
-{% for cuatrimestre, infocuat in opciones_por_cuatrimestre.items %}
-    <p>
-        <div id="subtitulo">Preferencias para el
-            {% if cuatrimestre.name == "P" %}
-            primer cuatrimestre
-            {% elif cuatrimestre.name == "S" %}
-            segundo cuatrimestre
-            {% else %}
-            cuatrimestre de verano
-            {% endif %}
-        </div>
-        <div id=pregunta>Cantidad de turnos que quiere cubrir:
-            <input id=cargas type="number" name="cargas{{ cuatrimestre.name }}" min=0 max=3 value=
-            {% if cuatrimestre.name == "P" %} {{ cargasP }}
-            {% elif cuatrimestre.name == "S" %} {{ cargasS }}
-            {% else %} {{ cargasV }}
-            {% endif %}
-            >
-        </div>
-    </p>
 
-    <p>
-    <div id="pregunta">Turnos preferidos</div>
-    {% for i, lista_corta, elegido, peso in infocuat.opciones %}
-        <div id="seleccion">
-            <select name="opcion{{ cuatrimestre.name }}{{ i }}">
-                {% for turno in infocuat.turnos %}
-                {% if not lista_corta or turno.dificil_de_cubrir %}
-                <option value="{{ turno.id }}"
-                        {% if turno.no_elegible %}disabled{% endif %}
-                        {% if turno.id == elegido %}selected{% endif %}>
-                {{ turno.texto }}
-                </option>
-                {% endif %}
-                {% endfor %}
-            </select>
-            Peso: <input id=peso type="number" name="peso{{ cuatrimestre.name }}{{ i }}" min=0 max={{ maximo_peso }} value={{ peso }}>
+<div class="bg-primary text-white p-3 mb-4 rounded">
+    <h1 class="mb-0">Encuesta de distribución docente</h1>
+</div>
+
+
+  <h2 class="mb-4">
+        {% if cuatrimestres_texto == "V" %}
+		Cuatrimestre de verano{{anno}}
+        {% elif cuatrimestres_texto == 'V. y 1' %}
+		Verano y primer cuatrimestre
+        {% elif cuatrimestres_texto == "1" %}
+		Primer cuatrimestre
+        {% elif cuatrimestres_texto == "2" %}
+		Segundo cuatrimestre
+		{% else %}
+		Todos los cuatrimestres
+        {% endif %}
+		de {{ anno }}
+  </h2>
+
+
+  <div class="alert alert-info mb-4">
+    <h2 class="h5">Tener en cuenta</h2>
+    <ul class="mb-0">
+      <li>En cada turno pedido se debe poner un peso entre 0 y 20.</li>
+      <li>Cuanto mayor es el peso, menor es la probabilidad de tener que dictar ese turno.</li>
+      <li>Los pesos de cada docente se normalizan con norma 1.</li>
+    </ul>
+  </div>
+
+  <form action="{% url 'encuestas:encuesta' anno cuatrimestres tipo_docente %}" method="post">
+    {% csrf_token %}
+
+    <div class="form-section">
+      <h3 class="form-title">Docente</h3>
+      <div class="mb-3">
+        <label class="form-label">Seleccione docente</label>
+        <select name="docente" class="form-select">
+          {% for docente in docentes %}
+          <option value="{{ docente.id }}" {% if docente.id == docente_selected %}selected{% endif %}>
+            {{ docente.nombre }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Cantidad de turnos que tiene que cubrir en el período de la encuesta</label>
+        <input type="number" name="cargas_declaradas" class="form-control" min="0" max="6"
+               value="{% if cuatrimestres_texto == 'todos' %}2{% else %}1{% endif %}">
+      </div>
+    </div>
+
+    {% for cuatrimestre, infocuat in opciones_por_cuatrimestre.items %}
+    <div class="form-section mt-4">
+      <h3 class="form-title">
+        Preferencias para el 
+        {% if cuatrimestre.name == "P" %}
+        primer cuatrimestre
+        {% elif cuatrimestre.name == "S" %}
+        segundo cuatrimestre
+        {% else %}
+        cuatrimestre de verano
+        {% endif %}
+      </h3>
+
+      <div class="mb-3">
+        <label class="form-label">Cantidad de turnos que quiere cubrir</label>
+        <input type="number" name="cargas{{ cuatrimestre.name }}" class="form-control" min="0" max="3"
+               value="{% if cuatrimestre.name == 'P' %}{{ cargasP }}{% elif cuatrimestre.name == 'S' %}{{ cargasS }}{% else %}{{ cargasV }}{% endif %}">
+      </div>
+
+      <h4 class="h5 mt-4 mb-3">Turnos preferidos</h4>
+      
+      {% for i, lista_corta, elegido, peso in infocuat.opciones %}
+      <div class="row g-3 mb-3 align-items-center">
+        <div class="col-md-8">
+          <select name="opcion{{ cuatrimestre.name }}{{ i }}" class="form-select">
+            {% for turno in infocuat.turnos %}
+            {% if not lista_corta or turno.dificil_de_cubrir %}
+            <option value="{{ turno.id }}" 
+                    {% if turno.no_elegible %}disabled{% endif %}
+                    {% if turno.id == elegido %}selected{% endif %}>
+              {{ turno.texto }}
+            </option>
+            {% endif %}
+            {% endfor %}
+          </select>
         </div>
-    </p>
+        <div class="col-md-4">
+          <div class="input-group">
+            <span class="input-group-text">Peso:</span>
+            <input type="number" name="peso{{ cuatrimestre.name }}{{ i }}" 
+                   class="form-control" min="0" max="{{ maximo_peso }}" 
+                   value="{{ peso }}">
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+
+		<a href="https://web.dm.uba.ar/index.php/docencia/materias/horarios?ano={{ anno }}&cuatrimestre={% if cuatrimestre.name == "P" %}1{% elif cuatrimestre.name == "S" %}2{% else %}v{% endif %}" class="section-link btn btn-outline-primary">Página con los horarios</a>
+
     {% endfor %}
 
-<hr>
+    <div class="form-section mt-4">
+      <h3 class="form-title">Información de contacto</h3>
+      
+      <div class="mb-3">
+        <label class="form-label">Correo electrónico</label>
+        <input type="email" name="email" class="form-control" value="{{ email }}">
+      </div>
 
-{% endfor %}
+      <div class="mb-3">
+        <label class="form-label">Celular</label>
+        <input type="tel" name="telefono" class="form-control" value="{{ telefono }}">
+        <small class="text-muted">Código de área y número. Por ejemplo, (11) 1234-5678</small>
+      </div>
 
-<p>
-    <div id="subtitulo">Correo electrónico</div>
-    <input type="email" name="email" value="{{ email }}">
-</p>
+    </div>
 
-<p>
-    <div id="subtitulo">Celular</div>
-    <input type="tel" name="telefono" value="{{ telefono }}"> (Código de área y número. Por ejemplo, (11) 1234-5678)
-</p>
+    <div class="form-section">
+      <h3 class="form-title">Comentarios</h3>
+      <div class="mb-3">
+        <label class="form-label">Comentarios</label>
+        <textarea name="comentario" class="form-control" rows="3">{{ comentario }}</textarea>
+      </div>
+    </div>
 
-<p>
-    <div id="subtitulo">Comentarios</div>
-    <textarea name="comentario" cols=120 rows=3>{{ comentario }}</textarea>
-</p>
+    <div class="text-center mt-4">
+      <button type="submit" class="btn btn-primary btn-lg px-5">
+        Enviar encuesta
+      </button>
+    </div>
+  </form>
 
+</div>
 
-<p>
-<input type="submit" value="mandar">
-</form>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+{% endblock %}

@@ -9,3 +9,4 @@ django-simple-history==2.10.0
 xlwt
 gunicorn
 ipdb
+django-boostrap-v5
