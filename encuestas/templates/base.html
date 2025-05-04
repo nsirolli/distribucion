@@ -15,6 +15,15 @@
         .form-check-label {
             cursor: pointer;
         }
+        .footer-link {
+            color: #adb5bd;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .footer-link:hover {
+            color: white;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body class="bg-light">
@@ -24,10 +33,13 @@
         {% block content %}{% endblock %}
     </div>
 
-    <!-- Footer -->
-    <footer class="mt-5 py-3 bg-dark text-white text-center">
-        <div class="container">
-			<p class="mb-0">© {{ anno }} Departamento de Matemática - FCEyN, UBA</p>
+    <!-- Enhanced Footer (same content, better presentation) -->
+    <footer class="mt-5 py-4 bg-dark">
+        <div class="container text-center">
+            <p class="mb-0">
+                <span class="text-white">© {{ anno }} </span>
+                <a href="https://web.dm.uba.ar" class="footer-link">Departamento de Matemática – FCEyN, UBA</a>
+            </p>
         </div>
     </footer>
 </body>

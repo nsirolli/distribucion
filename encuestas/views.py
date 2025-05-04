@@ -307,7 +307,8 @@ def encuesta(request, anno, cuatrimestres, tipo_docente):
                       context={'opciones': opciones, 'docente': docente,
                                'email': otros_datos.email,
                                'telefono': otros_datos.telefono,
-                               'comentario': otros_datos.comentario})
+                               'comentario': otros_datos.comentario,
+                               'anno': anno})
     except ValidationError as e:
         return _encuesta_con_mensaje_de_error(request, context, e.message)
 

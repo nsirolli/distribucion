@@ -26,21 +26,10 @@
 
 {% block content %}
 <div class="container my-4">
-  {% if messages %}
-  <div class="mb-4">
-    {% for message in messages %}
-    <div class="alert alert-{{ message.tags }}">
-      {% if message.tags %}<strong>{{ message.tags|title }}</strong>{% endif %} {{ message }}
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
 
-
-<div class="bg-primary text-white p-3 mb-4 rounded">
-    <h1 class="mb-0">Encuesta de distribución docente</h1>
-</div>
-
+	<div class="bg-primary text-white p-3 mb-4 rounded">
+			<h1 class="mb-0">Encuesta de distribución docente</h1>
+	</div>
 
   <h2 class="mb-4">
         {% if cuatrimestres_texto == "V" %}
@@ -56,7 +45,6 @@
         {% endif %}
 		de {{ anno }}
   </h2>
-
 
   <div class="alert alert-info mb-4">
     <h2 class="h5">Tener en cuenta</h2>
@@ -175,6 +163,57 @@
   </form>
 
 </div>
+
+<!-- Error Modal with Blur -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-danger">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Error en el formulario</h5>
+      </div>
+      <div class="modal-body">
+        <div id="errorMessage"></div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Entendido</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Blur Overlay (controlled by Bootstrap) -->
+<style>
+  .modal-backdrop.show {
+    backdrop-filter: blur(5px);
+    opacity: 0.7 !important;
+  }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+  
+  // Only show if coming from form submission
+  if (performance.navigation.type === performance.navigation.TYPE_RELOAD || 
+      performance.navigation.type === performance.navigation.TYPE_BACK_FORWARD) {
+    // Don't show errors on back/refresh
+  } else {
+    {% if messages %}
+      {% for message in messages %}
+        {% if message.tags == 'error' %}
+          document.getElementById('errorMessage').textContent = `{{ message|escapejs }}`;
+          errorModal.show();
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  }
+  
+  // Clear URL state
+  if (window.history.replaceState) {
+    window.history.replaceState(null, null, window.location.href);
+  }
+});
+</script>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 {% endblock %}
