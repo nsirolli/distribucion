@@ -101,7 +101,14 @@ td.fondoA
 
 td.fondoL
 {
-  background-color: #aa522f;
+  background-color: #b36290;
+  color: #FFFFFF;
+  width: 10em;
+}
+
+td.fondoC
+{
+  background-color: #579e84;
   color: #FFFFFF;
   width: 10em;
 }

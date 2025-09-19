@@ -81,6 +81,7 @@ class TipoTurno(Enum):
     P = 'Práctica'
     A = 'Teórico-Práctica'
     L = 'Laboratorio'
+    C = 'Consultas'
 
 
 class Cuatrimestres(Enum):
