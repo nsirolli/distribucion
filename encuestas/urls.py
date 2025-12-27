@@ -5,7 +5,7 @@ from . import views
 #login
 from django.contrib import admin
 from django.urls import include
-from encuestas.views import login_view, verificar_codigo_view, dashboard_view, logout_view
+from encuestas.views import login_view, verificar_codigo_view, logout_view
 #TODO unificar con "views."
 #login
 
@@ -30,7 +30,7 @@ urlpatterns = [
     # path('admin/', admin.site.urls),
     path('login/', login_view, name='login'),
     path('verificar-codigo/', verificar_codigo_view, name='verificar_codigo'),
-    path('dashboard/', dashboard_view, name='dashboard'),
+    # path('dashboard/', dashboard_view, name='dashboard'),
     path('logout/', logout_view, name='logout'),
     #login
 ]
