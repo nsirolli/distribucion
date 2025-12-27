@@ -254,9 +254,10 @@ class Horario(models.Model):
             return f'{self.aula} (P.{pab.value[1]})'
         return ''
 
-
-telefono_validator = RegexValidator(regex=r'^\+?[0-9 -]{9,15}$',
-                                    message=('El celular debe ser del estilo "area número" (por ejemplo, +11 1234-5678)'))
+telefono_validator = RegexValidator(
+    regex=r'^(\+54\s?)?(11|2\d{2,3}|3\d{2,3})\s?[0-9]{3,4}[- ]?[0-9]{4}$',
+    message='Ejemplos: +54 11 1234-5678, 11 1234-5678, 351 123-4567'
+)
 
 
 class Docente(models.Model):

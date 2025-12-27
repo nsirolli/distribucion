@@ -35,7 +35,7 @@ class Mapeos:
         Cargos.JTP: TipoDocentes.J,
         Cargos.Ay1: TipoDocentes.A1,
         Cargos.Ay2: TipoDocentes.A2,
-        # Cargos.Bec: TipoDocentes.BI,
+        Cargos.Bec: TipoDocentes.BI,
     }
 
     @staticmethod
