@@ -7,6 +7,46 @@ from datetime import datetime
 
 from materias.models import Turno, Docente, Cuatrimestres, Cargos, TipoDocentes, choice_enum, telefono_validator
 
+#login
+import random
+from datetime import timedelta
+
+class CodigoVerificacion(models.Model):
+    email = models.EmailField()
+    codigo = models.CharField(max_length=6)
+    creado = models.DateTimeField(auto_now_add=True)
+    intentos = models.IntegerField(default=0)
+    usado = models.BooleanField(default=False)
+    
+    def __str__(self):
+        return f"{self.email} - {self.codigo}"
+    
+    def es_valido(self):
+        # El código es válido por 10 minutos
+        tiempo_expiracion = self.creado + timedelta(minutes=10)
+        return not self.usado and timezone.now() <= tiempo_expiracion and self.intentos < 3
+    
+    def marcar_usado(self):
+        self.usado = True
+        self.save()
+    
+    def incrementar_intentos(self):
+        self.intentos += 1
+        self.save()
+    
+    @classmethod
+    def generar_codigo(cls, email):
+        # Eliminar códigos anteriores para este email
+        cls.objects.filter(email=email).delete()
+        
+        # Generar código de 6 dígitos
+        codigo = str(random.randint(100000, 999999))
+        
+        # Crear nuevo registro
+        return cls.objects.create(email=email, codigo=codigo)
+#login
+
+
 class GrupoCuatrimestral(Enum):
     V = 'Verano'
     P = '1'

@@ -22,8 +22,12 @@ SECURE_SSL_REDIRECT = False
 CSRF_COOKIE_SECURE = False
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 12000
 
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
+#login
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# descomentar estas dos:
+# EMAIL_HOST = 'localhost'
+# EMAIL_PORT = 1025
+#login
 
 LOGIN_URL = '/admin/login'
 ALLOWED_HOSTS = ['localhost']
