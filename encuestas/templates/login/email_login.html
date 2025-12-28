@@ -39,7 +39,8 @@
                     <form method="post">
                         {% csrf_token %}
 
-						<h4 class="text-center text-muted mb-4">{{ tipo }} - {{ cuat }} de {{ anno }}</h4>
+						<h4 class="text-center text-muted mb-2">{{ tipo }}</h4>
+                        <h5 class="text-center text-muted mb-4">{{ cuat }} de {{ anno }}</h5>
 
                         <div class="mb-3">
                             <label for="email" class="form-label">Correo electrónico:</label>

@@ -36,7 +36,7 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from materias.models import Carga #TODO llevar arriba
-from materias.forms import DocenteForm
+# from materias.forms import DocenteForm
 from .models import CodigoVerificacion #TODO llevar arriba
 
 @csrf_protect
@@ -74,13 +74,16 @@ def login_view(request):
             # Enviar email con el código
             subject = 'Tu código de verificación'
             message = f'''
-            Hola {docente.nombre if hasattr(docente, 'nombre') else 'Docente'},
+            Hola {docente.nombre if hasattr(docente, 'nombre') else 'Docente'}:
             
             Tu código de verificación es: {codigo_obj.codigo}
             
             Este código es válido por 10 minutos.
             
-            Si no solicitaste este código, ignora este mensaje.
+            Si no solicitaste este código, ignorá este mensaje.
+
+            Saludos,
+            Distribución DM
             '''
             
             send_mail(
@@ -303,27 +306,12 @@ def _nombre_cuat_error(cuatrimestre):
     return nombres[cuatrimestre]
 
 def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente, docente):
-    fecha_encuesta = timezone.now()
-    # docente = Docente.objects.get(pk=datos['docente'])
 
-    # ⭐ VALIDACIÓN BÁSICA DE EMAIL Y TELÉFONO
-    email = datos.get('email', '').strip()
+    fecha_encuesta = timezone.now()
+
     telefono = datos.get('telefono', '').strip()
-    
-    if not email:
-        raise ValidationError('El email es requerido', code='invalid')
-    
     if not telefono:
         raise ValidationError('El teléfono es requerido', code='invalid')
-    
-    # Validar formato de email (opcional, descomenta si lo necesitas)
-    try:
-        validate_email(email)
-    except:
-        raise ValidationError('El email no tiene un formato válido', code='invalid')
-    
-    # ⭐ Ahora usar email y telefono validados (en minúscula para consistencia)
-    email = email.lower()
 
     opcc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres,tipo_docente=tipo_docente).opciones()
 
@@ -359,8 +347,9 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente, docente):
 
         tdict[c] = sum(cuenta.values())
 
+    email = docente.email
     # email = datos['email']
-    telefono = datos['telefono']
+    # telefono = datos['telefono']
 
     # email_validator = EmailValidator(message='La dirección de email es incorrecta')
     # email_validator(email)
@@ -556,7 +545,6 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
     #login
     docente = docente_autenticado
     cargas_por_cuatri = obtener_cargas_para_encuesta(docente, anno, cuatrimestres)
-    form = DocenteForm(instance=docente)
     #login
 
     context = {
@@ -598,16 +586,16 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
 
     elif request.method == 'POST':
 
-        form = DocenteForm(request.POST, instance=docente)
-
         try:
+
+            nuevo_telefono = request.POST.get('telefono', '').strip()
+            docente.telefono = nuevo_telefono
+            docente.save()
 
             opciones, otros_datos, cargas_pedidas = checkear_y_salvar(request.POST,
                                                                       anno, cuatrimestres,
                                                                       tipo_docente,
                                                                       docente)
-            form.save()
-            docente.refresh_from_db()
 
             mandar_mail(opciones, otros_datos, cargas_pedidas, anno, cuatrimestres, tipo_docente)
             return render(request,
