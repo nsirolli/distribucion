@@ -37,7 +37,7 @@
   <div class="bg-primary text-white p-3 mb-4 rounded d-flex justify-content-between align-items-center">
     <h1 class="mb-0">Encuesta de distribución docente</h1>
     <a href="{% url 'encuestas:logout' %}" class="btn btn-outline-light btn-sm">
-  	✗ Cerrar sesión
+      ✗ Cerrar sesión
     </a>
   </div>
 
@@ -45,9 +45,9 @@
     {{ cuatrimestres_texto }} de {{ anno }}
   </h2>
 
-	<h4 class="text-muted mb-4">
-		Docente: {{ docente_nombre }}
-	</h4>
+  <h4 class="text-muted mb-4">
+    Docente: {{ docente_nombre }}
+  </h4>
 
   <div class="alert alert-info mb-4">
     <h2 class="h5">Tener en cuenta</h2>
@@ -63,7 +63,6 @@
 
     <!-- Campo oculto con el ID del docente autenticado -->
     <input type="hidden" name="docente" value="{{ docente.id }}">
-
 
     {% for cuatrimestre, infocuat in opciones_por_cuatrimestre.items %}
     <div class="form-section mt-4">
@@ -81,9 +80,9 @@
       <div class="mb-3">
         <label class="form-label">Cantidad de turnos que tiene que cubrir</label>
         <input type="number" name="cargas_declaradas" class="form-control" min="0" max="3" value="{% if cuatrimestre.name == 'P' %}{{ cargas_tieneP }}{% elif cuatrimestre.name == 'S' %}{{ cargas_tieneS }}{% else %}{{ cargas_tieneV }}{% endif %}">
-			<small class="text-muted">
-				El valor por defecto es el de nuestros registros.
-			</small>
+        <small class="text-muted">
+          El valor por defecto es el de nuestros registros.
+        </small>
       </div>
 
       <div class="mb-3">
@@ -91,7 +90,6 @@
         <input type="number" name="cargas{{ cuatrimestre.name }}" class="form-control" min="0" max="3"
                value="{% if cuatrimestre.name == 'P' %}{{ cargasP }}{% elif cuatrimestre.name == 'S' %}{{ cargasS }}{% else %}{{ cargasV }}{% endif %}">
       </div>
-
 
       <h4 class="h5 mt-4 mb-3">Turnos preferidos</h4>
       
@@ -120,14 +118,10 @@
         </div>
       </div>
       {% endfor %}
+
+      <a href="https://web.dm.uba.ar/index.php/docencia/materias/horarios?ano={{ anno }}&cuatrimestre={% if cuatrimestre.name == "P" %}1{% elif cuatrimestre.name == "S" %}2{% else %}v{% endif %}" class="section-link btn btn-outline-primary" target="_blank" rel="noopener noreferrer">Página con los horarios</a>
     </div>
-
-    <a href="https://web.dm.uba.ar/index.php/docencia/materias/horarios?ano={{ anno }}&cuatrimestre={% if cuatrimestre.name == "P" %}1{% elif cuatrimestre.name == "S" %}2{% else %}v{% endif %}" class="section-link btn btn-outline-primary" target="_blank" rel="noopener noreferrer">Página con los horarios</a>
-
     {% endfor %}
-
-    </div>
-
 
     <div class="form-section mt-4">
       <h3 class="form-title">Información de contacto</h3>
@@ -141,7 +135,7 @@
         <label class="form-label">Celular</label>
         <input type="tel" name="telefono" class="form-control" value="{{ telefono }}">
       </div>
-	</div>
+    </div>
 
     <div class="form-section">
       <h3 class="form-title">Comentarios</h3>

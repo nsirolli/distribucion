@@ -44,7 +44,7 @@ def login_view(request):
 
     params = request.session.get('parametros_encuesta')
     if not params:
-        messages.error(request, 'Ingresá desde la URL de la encuesta que querés completar')
+        return redirect('encuestas:error_page')
 
     anno = params.get('anno')
     cuatrimestres = params.get('cuatrimestres')
@@ -113,7 +113,7 @@ def verificar_codigo_view(request):
     params = request.session.get('parametros_encuesta')
 
     if not params:
-        messages.error(request, 'Ingresá desde la URL de la encuesta que querés completar')
+        return redirect('encuestas:error_page')
     
     if not email:
         messages.error(request, 'Ingresa tu email primero.')
@@ -182,10 +182,23 @@ def verificar_codigo_view(request):
     return render(request, 'login/verificar_codigo.html', {'email': email})
 
 def logout_view(request):
+
+    params = request.session.get('parametros_encuesta')
+    anno = params.get('anno')
+    cuatrimestres = params.get('cuatrimestres')
+    tipo_docente = params.get('tipo_docente')
     auth_logout(request)
     request.session.flush()  # Limpiar toda la sesión
     messages.success(request, 'Has cerrado sesión exitosamente.')
+    request.session['parametros_encuesta'] = {
+        'anno': anno,
+        'cuatrimestres': cuatrimestres,
+        'tipo_docente': tipo_docente
+    }
     return redirect('encuestas:login')
+
+def error_view(request):
+    return render(request, 'login/error.html')
 
 def docente_autenticado_required(view_func):
     @wraps(view_func)
@@ -200,18 +213,10 @@ def docente_autenticado_required(view_func):
             messages.error(request, 'Debés iniciar sesión para acceder a esta página.')
             return redirect('encuestas:login')
         
-        # Verificar que el docente existe
-        try:
-            docente_id = request.session['docente_id']
-            docente = Docente.objects.get(id=docente_id)
-            # Pasar el docente al contexto de la vista
-            kwargs['docente_autenticado'] = docente
-        except Docente.DoesNotExist:
-            messages.error(request, 'Tu sesión no es válida. Inicia sesión nuevamente.')
-            # Limpiar sesión inválida
-            if 'docente_id' in request.session:
-                del request.session['docente_id']
-            return redirect('encuestas:login')
+        docente_id = request.session['docente_id']
+        docente = Docente.objects.get(id=docente_id)
+        # Pasar el docente al contexto de la vista
+        kwargs['docente_autenticado'] = docente
         
         return view_func(request, *args, **kwargs)
     return _wrapped_view
@@ -575,8 +580,6 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
         f'cargas{Cuatrimestres.P.name}': 1,
         f'cargas{Cuatrimestres.S.name}': 1,
     }
-
-    ipdb.set_trace()
 
     for c in cuatrimestres:
         context[f'cargas_tiene{c}'] = cargas_por_cuatri[c]
