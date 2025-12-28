@@ -25,6 +25,8 @@ import logging.config
 logger = logging.getLogger(__name__)
 
 #login
+
+from django.core.validators import validate_email
 from functools import wraps
 from django.shortcuts import render, redirect
 from django.contrib.auth import login as auth_login, logout as auth_logout
@@ -34,16 +36,37 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 from materias.models import Carga #TODO llevar arriba
+from materias.forms import DocenteForm
 from .models import CodigoVerificacion #TODO llevar arriba
 
 @csrf_protect
 def login_view(request):
+
+    params = request.session.get('parametros_encuesta')
+    if not params:
+        messages.error(request, 'Ingresá desde la URL de la encuesta que querés completar')
+
+    anno = params.get('anno')
+    cuatrimestres = params.get('cuatrimestres')
+    tipo_docente = params.get('tipo_docente')
+
+    context = {
+            'anno':anno,
+            'cuat':_cuatrimestres_a_texto(cuatrimestres),
+            'tipo':_tipo_de_docente_a_texto(tipo_docente)
+            }
+
     if request.method == 'POST':
         email = request.POST.get('email', '').strip().lower()
         
         # Paso 1: Validar que el email pertenece a un docente
         try:
+            params = request.session['parametros_encuesta']
+            habilitados = _obtener_docentes_habilitados(anno, cuatrimestres, tipo_docente)
+
             docente = Docente.objects.get(email=email)
+
+            assert docente in habilitados
             
             # Generar y enviar código
             codigo_obj = CodigoVerificacion.generar_codigo(email)
@@ -77,17 +100,23 @@ def login_view(request):
             
         except Docente.DoesNotExist:
             messages.error(request, 'No existe un docente registrado con este correo.')
+        except AssertionError:
+            messages.error(request, 'No estás habilitad@ para completar esta encuesta.')
         except Exception as e:
             messages.error(request, f'Error al enviar el código: {str(e)}')
     
-    return render(request, 'login/email_login.html')
+    return render(request, 'login/email_login.html', context)
 
 @csrf_protect
 def verificar_codigo_view(request):
     email = request.session.get('email_verificacion')
+    params = request.session.get('parametros_encuesta')
+
+    if not params:
+        messages.error(request, 'Ingresá desde la URL de la encuesta que querés completar')
     
     if not email:
-        messages.error(request, 'Por favor, ingresa tu email primero.')
+        messages.error(request, 'Ingresa tu email primero.')
         return redirect('encuestas:login')
     
     if request.method == 'POST':
@@ -99,49 +128,41 @@ def verificar_codigo_view(request):
             ).order_by('-creado').first()
             
             if not codigo_obj:
-                messages.error(request, 'No se encontró un código de verificación. Solicita uno nuevo.')
+                messages.error(request, 'No se encontró un código de verificación. Solicitá uno nuevo.')
                 return redirect('encuestas:login')
             
             if not codigo_obj.es_valido():
-                messages.error(request, 'El código ha expirado o es inválido. Solicita uno nuevo.')
+                messages.error(request, 'El código ha expirado o es inválido. Solicitá uno nuevo.')
                 codigo_obj.delete()
                 return redirect('encuestas:login')
             
             if codigo_obj.codigo == codigo_ingresado:
                 # Código correcto, autenticar al docente
-                try:
-                    docente = Docente.objects.get(email=email)
+                docente = Docente.objects.get(email=email)
+                
+                # Guardar datos del docente en sesión
+                request.session['docente_id'] = docente.id
+                request.session['email'] = docente.email
+                request.session['docente_nombre'] = getattr(docente, 'nombre', '')
+                
+                # Marcar código como usado
+                codigo_obj.marcar_usado()
+                
+                # Limpiar sesión temporal
+                if 'email_verificacion' in request.session:
+                    del request.session['email_verificacion']
+                
+                messages.success(request, f'¡Bienvenido {getattr(docente, "nombre", "Docente")}!')
+
+                anno = params.get('anno')
+                cuatrimestres = params.get('cuatrimestres')
+                tipo_docente = params.get('tipo_docente')
+                
+                return redirect('encuestas:encuesta', 
+                               anno=anno,
+                               cuatrimestres=cuatrimestres,
+                               tipo_docente=tipo_docente)
                     
-                    # Guardar datos del docente en sesión
-                    request.session['docente_id'] = docente.id
-                    request.session['docente_email'] = docente.email
-                    request.session['docente_nombre'] = getattr(docente, 'nombre', '')
-                    
-                    # Marcar código como usado
-                    codigo_obj.marcar_usado()
-                    
-                    # Limpiar sesión temporal
-                    if 'email_verificacion' in request.session:
-                        del request.session['email_verificacion']
-                    
-                    messages.success(request, f'¡Bienvenido {getattr(docente, "nombre", "Docente")}!')
-                    
-                    # ⭐ CAMBIO AQUÍ: Redirigir a la vista de encuesta en lugar de dashboard
-                    # Obtener los parámetros actuales o usar unos por defecto
-                    # Puedes ajustar estos valores según tu lógica
-                    # FIXME
-                    # anno_actual = datetime.now().year
-                    anno_actual = 2026
-                    cuatrimestre_actual = 'P'  # o la lógica que uses
-                    tipo_docente = 'P'  # o el tipo que corresponda
-                    
-                    return redirect('encuestas:encuesta', 
-                                   anno=anno_actual,
-                                   cuatrimestres=cuatrimestre_actual,
-                                   tipo_docente=tipo_docente)
-                    
-                except Docente.DoesNotExist:
-                    messages.error(request, 'Error al autenticar. Contacta al administrador.')
             else:
                 # Código incorrecto
                 codigo_obj.incrementar_intentos()
@@ -150,12 +171,12 @@ def verificar_codigo_view(request):
                 if intentos_restantes > 0:
                     messages.error(request, f'Código incorrecto. Te quedan {intentos_restantes} intentos.')
                 else:
-                    messages.error(request, 'Demasiados intentos fallidos. Solicita un nuevo código.')
+                    messages.error(request, 'Demasiados intentos fallidos. Solicitá un nuevo código.')
                     codigo_obj.delete()
                     return redirect('encuestas:login')
                 
         except CodigoVerificacion.DoesNotExist:
-            messages.error(request, 'Código no válido. Solicita uno nuevo.')
+            messages.error(request, 'Código no válido. Solicitá uno nuevo.')
             return redirect('encuestas:login')
     
     return render(request, 'login/verificar_codigo.html', {'email': email})
@@ -171,7 +192,12 @@ def docente_autenticado_required(view_func):
     def _wrapped_view(request, *args, **kwargs):
         # Verificar que el docente está autenticado
         if 'docente_id' not in request.session:
-            messages.error(request, 'Debes iniciar sesión para acceder a esta página.')
+            request.session['parametros_encuesta'] = {
+                'anno': kwargs.get('anno'),
+                'cuatrimestres': kwargs.get('cuatrimestres'),
+                'tipo_docente': kwargs.get('tipo_docente'),
+            }
+            messages.error(request, 'Debés iniciar sesión para acceder a esta página.')
             return redirect('encuestas:login')
         
         # Verificar que el docente existe
@@ -181,7 +207,7 @@ def docente_autenticado_required(view_func):
             # Pasar el docente al contexto de la vista
             kwargs['docente_autenticado'] = docente
         except Docente.DoesNotExist:
-            messages.error(request, 'Tu sesión no es válida. Por favor, inicia sesión nuevamente.')
+            messages.error(request, 'Tu sesión no es válida. Inicia sesión nuevamente.')
             # Limpiar sesión inválida
             if 'docente_id' in request.session:
                 del request.session['docente_id']
@@ -274,6 +300,26 @@ def _nombre_cuat_error(cuatrimestre):
 def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente, docente):
     fecha_encuesta = timezone.now()
     # docente = Docente.objects.get(pk=datos['docente'])
+
+    # ⭐ VALIDACIÓN BÁSICA DE EMAIL Y TELÉFONO
+    email = datos.get('email', '').strip()
+    telefono = datos.get('telefono', '').strip()
+    
+    if not email:
+        raise ValidationError('El email es requerido', code='invalid')
+    
+    if not telefono:
+        raise ValidationError('El teléfono es requerido', code='invalid')
+    
+    # Validar formato de email (opcional, descomenta si lo necesitas)
+    try:
+        validate_email(email)
+    except:
+        raise ValidationError('El email no tiene un formato válido', code='invalid')
+    
+    # ⭐ Ahora usar email y telefono validados (en minúscula para consistencia)
+    email = email.lower()
+
     opcc = EncuestasHabilitadas.objects.get(anno=anno,cuatrimestres=cuatrimestres,tipo_docente=tipo_docente).opciones()
 
     tdict = {} # para guardar la cantidad opciones ofrecidas
@@ -308,12 +354,12 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente, docente):
 
         tdict[c] = sum(cuenta.values())
 
-    email = datos['email']
+    # email = datos['email']
     telefono = datos['telefono']
 
-    email_validator = EmailValidator(message='La dirección de email es incorrecta')
-    email_validator(email)
-    telefono_validator(telefono)
+    # email_validator = EmailValidator(message='La dirección de email es incorrecta')
+    # email_validator(email)
+    # telefono_validator(telefono)
 
     # OtrosDatos
     otros_datos = OtrosDatos.objects.create(docente=docente, anno=anno, cuatrimestre=cuatrimestres,
@@ -359,6 +405,10 @@ TurnoParaEncuesta = namedtuple('TurnoParaEncuesta', ['id', 'texto', 'dificil_de_
 OpcionesParaEncuesta = namedtuple('OpcionesParaEncuesta', ['numero', 'lista_corta', 'turno_elegido', 'peso'])
 OpcionesPorCuatrimestre = namedtuple('OpcionesPorCuatrimestre', ['opciones', 'turnos'])
 
+def _obtener_docentes_habilitados(anno, cuatrimestres, tipo_docente):
+    tipo = TipoDocentes[tipo_docente]
+    docentes_habilitados = Mapeos.docentes_de_tipo(tipo, anno, cuatrimestres)
+    return docentes_habilitados
 
 def _generar_docentes(anno, cuatrimestres, tipo_docente):
     tipo = TipoDocentes[tipo_docente]
@@ -451,9 +501,44 @@ def obtener_cargas_para_encuesta(docente, anno, cuatrimestres):
             cuatrimestre=cuatrimestre
         )
         
-        cargas[cuatrimestre] = sum(c.carga for c in cargas_cuat)
+        cc = 0
+        for c in cargas_cuat:
+            cc += 1
+        cargas[cuatrimestre] = cc
             
     return cargas
+
+def _cuatrimestres_a_texto(cuatrimestres,caps=True):
+    dic = {
+            'V': 'cuatrimestre de verano',
+            'P': 'primer cuatrimestre',
+            'S': 'segundo cuatrimestre',
+            'VP': 'cuatrimestre de verano y primer cuatrimestre',
+            'VPS': 'todos los cuatrimestres',
+            }
+    res = dic[cuatrimestres]
+    if caps:
+        res = res.capitalize()
+    return res
+
+def _tipo_de_docente_a_texto(cargo,plural=True):
+    if plural:
+        dic = {
+                'J': 'Jef@s de trabajos prácticos',
+                'P': 'Profesor@s',
+                'A1': 'Ayudantes de 1ra',
+                'A2': 'Ayudantes de 2da',
+                }
+    else:
+        dic = {
+                'J': 'Jefe de trabajos prácticos',
+                'P': 'Profesor',
+                'A1': 'Ayudante de 1ra',
+                'A2': 'Ayudante de 2da',
+                }
+    res = dic[cargo]
+    return res
+
 
 @docente_autenticado_required
 def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=None):
@@ -466,24 +551,23 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
     #login
     docente = docente_autenticado
     cargas_por_cuatri = obtener_cargas_para_encuesta(docente, anno, cuatrimestres)
-    cargas_total = sum(cargas_por_cuatri.values())
+    form = DocenteForm(instance=docente)
     #login
 
     context = {
         #login
         'docente': docente,  # Ahora solo un docente, no una lista
         'docente_nombre': getattr(docente, 'nombre', 'Docente'),
-        'docente_email': docente.email,
-        'cargas': cargas_total,
         #login
         'docentes': _generar_docentes(anno, cuatrimestres, tipo_docente),
         'opciones_por_cuatrimestre': opciones_por_cuatrimestre,
         'anno': anno,
         'cuatrimestres': cuatrimestres,
-        'cuatrimestres_texto': GrupoCuatrimestral[cuatrimestres].value,
+        'cuatrimestres_texto': _cuatrimestres_a_texto(cuatrimestres),
+        # 'cuatrimestres_texto': GrupoCuatrimestral[cuatrimestres].value,
         'tipo_docente': tipo_docente,
         'maximo_peso': 20,
-        'email': '', 'telefono': '', 'comentario': '',
+        'email': docente.email, 'telefono': docente.telefono or '', 'comentario': '',
         #login
         # 'docente_selected': -1,
         #login
@@ -491,6 +575,11 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
         f'cargas{Cuatrimestres.P.name}': 1,
         f'cargas{Cuatrimestres.S.name}': 1,
     }
+
+    ipdb.set_trace()
+
+    for c in cuatrimestres:
+        context[f'cargas_tiene{c}'] = cargas_por_cuatri[c]
 
     #login
     # try:
@@ -506,11 +595,17 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
 
     elif request.method == 'POST':
 
+        form = DocenteForm(request.POST, instance=docente)
+
         try:
+
             opciones, otros_datos, cargas_pedidas = checkear_y_salvar(request.POST,
                                                                       anno, cuatrimestres,
                                                                       tipo_docente,
                                                                       docente)
+            form.save()
+            docente.refresh_from_db()
+
             mandar_mail(opciones, otros_datos, cargas_pedidas, anno, cuatrimestres, tipo_docente)
             return render(request,
                           'encuestas/final.html',
@@ -520,7 +615,12 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
                                    'comentario': otros_datos.comentario,
                                    'anno': anno})
         except ValidationError as e:
-            return _encuesta_con_mensaje_de_error(request, context, e.message)
+
+            error_message = e.messages[0] if e.messages else str(e)
+            context['validation_error'] = error_message
+            return render(request, 'encuestas/encuesta.html', context)
+            # return _encuesta_con_mensaje_de_error(request, context, e.message)
+            # TODO borrar
 
 
 @login_required
