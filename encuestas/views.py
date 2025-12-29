@@ -89,8 +89,6 @@ def login_view(request):
             messages.error(request, 'No existe un docente registrado con este correo.')
         except AssertionError:
             messages.error(request, 'No estás habilitad@ para completar esta encuesta.')
-        except Exception as e:
-            messages.error(request, f'Error al enviar el código: {str(e)}')
     
     return render(request, 'login/email_login.html', context)
 
