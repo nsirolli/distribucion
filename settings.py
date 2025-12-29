@@ -29,26 +29,6 @@ EMAIL_PORT = 25
 EMAIL_HOST_USER = 'distribucion@dm.uba.ar'
 EMAIL_HOST_PASSWORD = ''
 
-# #login
-# # Email Configuration for Gmail
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.gmail.com'
-# EMAIL_PORT = 587
-# EMAIL_USE_TLS = True
-# EMAIL_USE_SSL = False  # TLS y SSL son mutuamente excluyentes
-#
-# # Usa tu correo de Gmail
-# EMAIL_HOST_USER = 'distribucion@dm.uba.ar'  # Tu dirección de Gmail completa
-# EMAIL_HOST_PASSWORD = 'kxfdacieyufbqcha'  # NO uses tu contraseña normal - ver siguiente paso
-#
-# # Opcional: Configurar remitente por defecto
-# DEFAULT_FROM_EMAIL = 'Distribución DM <distribucion@dm.uba.ar>'
-# SERVER_EMAIL = 'distribucion@dm.uba.ar'  # Para errores del servidor
-#
-# # Tiempo de espera para conexiones de email (en segundos)
-# EMAIL_TIMEOUT = 30
-# #login
-
 LOGIN_URL = '/admin/login'
 ALLOWED_HOSTS = ['*']
 
