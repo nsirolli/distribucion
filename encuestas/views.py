@@ -1,20 +1,21 @@
-import ipdb
+# import ipdb
 from django.http import Http404, HttpResponseRedirect, HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.forms import ValidationError
 from django.contrib import messages
+from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import permission_required, login_required
 from django.core.validators import EmailValidator
 from django.core.mail import send_mail
 from django.db.models import Count, Q
 from django.conf import settings
+from django.views.decorators.csrf import csrf_protect
 
 from materias.models import Turno, Docente, Cargos, CargoDedicacion, TipoTurno, Cuatrimestres, TipoDocentes, AnnoCuatrimestre, Carga
 from materias.misc import Mapeos
-from encuestas.models import (PreferenciasDocente, OtrosDatos, CargasPedidas,
-                              EncuestasHabilitadas, GrupoCuatrimestral, telefono_validator)
+from encuestas.models import PreferenciasDocente, OtrosDatos, CargasPedidas, EncuestasHabilitadas, GrupoCuatrimestral, CodigoVerificacion
 from encuestas.forms import HabilitacionDeEncuestaForm
 
 from locale import strxfrm
@@ -24,20 +25,7 @@ import logging
 import logging.config
 logger = logging.getLogger(__name__)
 
-#login
-
-from django.core.validators import validate_email
 from functools import wraps
-from django.shortcuts import render, redirect
-from django.contrib.auth import login as auth_login, logout as auth_logout
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.core.mail import send_mail
-from django.conf import settings
-from django.views.decorators.csrf import csrf_protect
-from materias.models import Carga #TODO llevar arriba
-# from materias.forms import DocenteForm
-from .models import CodigoVerificacion #TODO llevar arriba
 
 @csrf_protect
 def login_view(request):
@@ -59,7 +47,6 @@ def login_view(request):
     if request.method == 'POST':
         email = request.POST.get('email', '').strip().lower()
         
-        # Paso 1: Validar que el email pertenece a un docente
         try:
             params = request.session['parametros_encuesta']
             habilitados = _obtener_docentes_habilitados(anno, cuatrimestres, tipo_docente)
@@ -68,10 +55,8 @@ def login_view(request):
 
             assert docente in habilitados
             
-            # Generar y enviar código
             codigo_obj = CodigoVerificacion.generar_codigo(email)
             
-            # Enviar email con el código
             subject = 'Tu código de verificación'
             message = f'''
             Hola {docente.nombre if hasattr(docente, 'nombre') else 'Docente'}:
@@ -94,7 +79,6 @@ def login_view(request):
                 fail_silently=False,
             )
             
-            # Guardar email en sesión para el próximo paso
             request.session['email_verificacion'] = email
             request.session['codigo_id'] = codigo_obj.id
             
@@ -213,7 +197,6 @@ def docente_autenticado_required(view_func):
                 'cuatrimestres': kwargs.get('cuatrimestres'),
                 'tipo_docente': kwargs.get('tipo_docente'),
             }
-            messages.error(request, 'Debés iniciar sesión para acceder a esta página.')
             return redirect('encuestas:login')
         
         docente_id = request.session['docente_id']
@@ -223,7 +206,6 @@ def docente_autenticado_required(view_func):
         
         return view_func(request, *args, **kwargs)
     return _wrapped_view
-#login
 
 
 @login_required

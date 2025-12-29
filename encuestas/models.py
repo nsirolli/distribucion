@@ -1,15 +1,14 @@
+import random
+
 from django.db import models
 from simple_history.models import HistoricalRecords
 from django.core.validators import MaxValueValidator
 from django.utils import timezone
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from materias.models import Turno, Docente, Cuatrimestres, Cargos, TipoDocentes, choice_enum, telefono_validator
 
-#login
-import random
-from datetime import timedelta
 
 class CodigoVerificacion(models.Model):
     email = models.EmailField()
@@ -22,7 +21,6 @@ class CodigoVerificacion(models.Model):
         return f"{self.email} - {self.codigo}"
     
     def es_valido(self):
-        # El código es válido por 10 minutos
         tiempo_expiracion = self.creado + timedelta(minutes=10)
         return not self.usado and timezone.now() <= tiempo_expiracion and self.intentos < 3
     
@@ -36,15 +34,9 @@ class CodigoVerificacion(models.Model):
     
     @classmethod
     def generar_codigo(cls, email):
-        # Eliminar códigos anteriores para este email
         cls.objects.filter(email=email).delete()
-        
-        # Generar código de 6 dígitos
         codigo = str(random.randint(100000, 999999))
-        
-        # Crear nuevo registro
         return cls.objects.create(email=email, codigo=codigo)
-#login
 
 
 class GrupoCuatrimestral(Enum):
