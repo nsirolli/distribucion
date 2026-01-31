@@ -150,12 +150,21 @@ class Turno(models.Model):
     necesidad_ay2 = models.PositiveIntegerField(validators=[MaxValueValidator(15)])
     alumnos = models.PositiveIntegerField(validators=[MaxValueValidator(1000)], default=0)
     dificil_de_cubrir = models.BooleanField(default=False)
+    es_copia_de = models.ForeignKey(
+        'self', 
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True
+    )
     history = HistoricalRecords()
 
     def __str__(self):
         numero = f' {self.numero}' if self.numero else ''
         return (f'{self.materia.nombre}, cuat {Cuatrimestres[self.cuatrimestre].value} {self.anno}, '
                 f'{TipoTurno[self.tipo].value}{numero}')
+
+    def es_copia(self):
+        return self.es_copia_de is not None
 
     def str_corto(self):
         numero = f' {self.numero}' if self.numero else ''

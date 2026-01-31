@@ -30,5 +30,6 @@ def ordenados(lista):
 
 @register.filter
 def cargas_ordenadas(turno):
+    turno = turno.es_copia_de or turno
     cargas = sorted(turno.carga_set.all(), key=Mapeos.key_orden_por_tipo_docente)
     return ' - '.join([f'{carga.docente.nombre}' for carga in cargas])

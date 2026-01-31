@@ -53,6 +53,7 @@
                                 <th></th>
                                 <th></th>
                                 <th>alumnos</th>
+                                <th colspan="3">copia de:</th>
                             </tr>
                             {% for turno in turnos %}
                             <tr>
@@ -69,7 +70,23 @@
                                         </option>
                                         {% endfor %}
                                     </select></td>
-                                    {% endfor %}
+                                {% endfor %}
+                                <!-- Nueva columna para seleccionar si es copia de otro turno de la MISMA materia -->
+                                <td class="tabla_col_borde_izquierdo">
+                                    <select name="es_copia_de_{{ turno.id }}">
+                                        <option value="">-- Ninguno --</option>
+                                        {% for otro_turno in turnos %}
+                                            {% if otro_turno.id != turno.id %}
+                                            <option value="{{ otro_turno.id }}" 
+                                                    {% if turno.es_copia_de and turno.es_copia_de.id == otro_turno.id %}selected{% endif %}>
+                                                {{ otro_turno.tipo }}{{ otro_turno.numero }}
+                                                {% if otro_turno.subnumero %}{{ otro_turno.subnumero }}{% endif %}
+                                                ({{ otro_turno.horarios_info.diayhora|default:"Sin horario" }})
+                                            </option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>

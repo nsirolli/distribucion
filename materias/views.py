@@ -248,7 +248,8 @@ def administrar_general(request, anno, cuatrimestre, key_to_field, url, seccion=
 @ login_required
 @ permission_required('materias.add_turno')
 def administrar_alumnos(request, anno, cuatrimestre):
-    key_to_field = {Turno: {'alumnos': ('alumnos', int)},
+    key_to_field = {Turno: {'alumnos': ('alumnos', int),
+                            'es_copia_de': ('es_copia_de_id', lambda x: int(x) if x else None)} ,
                     Horario: {'aula': ('aula', str),
                               'pabellon': ('pabellon', str)}
                     }
