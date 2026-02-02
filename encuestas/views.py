@@ -167,20 +167,11 @@ def verificar_codigo_view(request):
     return render(request, 'login/verificar_codigo.html', {'email': email})
 
 def logout_view(request):
-
-    params = request.session.get('parametros_encuesta')
-    anno = params.get('anno')
-    cuatrimestres = params.get('cuatrimestres')
-    tipo_docente = params.get('tipo_docente')
     auth_logout(request)
-    request.session.flush()  # Limpiar toda la sesión
+    request.session.flush()
     messages.success(request, 'Has cerrado sesión exitosamente.')
-    request.session['parametros_encuesta'] = {
-        'anno': anno,
-        'cuatrimestres': cuatrimestres,
-        'tipo_docente': tipo_docente
-    }
-    return redirect('encuestas:login')
+    
+    return redirect('encuestas:index')
 
 def error_view(request):
     return render(request, 'login/error.html')
@@ -206,11 +197,32 @@ def docente_autenticado_required(view_func):
     return _wrapped_view
 
 
-@login_required
-@permission_required('dborrador.add_asignacion')
 def index(request):
-    return render(request, 'encuestas/administrar.html')
-
+    ahora = timezone.now()
+    encuestas_habilitadas = []
+    
+    for habilitacion in EncuestasHabilitadas.objects.all():
+        if habilitacion.es_valida_ahora(ahora):
+            encuestas_habilitadas.append({
+                'anno': habilitacion.anno,
+                'cuatrimestres': habilitacion.cuatrimestres,
+                'tipo_docente': habilitacion.tipo_docente,
+                'desde': habilitacion.desde,
+                'hasta': habilitacion.hasta,
+                'nombre_tipo': _tipo_de_docente_a_texto(habilitacion.tipo_docente, plural=True),
+                'nombre_cuatrimestres': _cuatrimestres_a_texto(habilitacion.cuatrimestres),
+                'url': reverse('encuestas:encuesta', kwargs={
+                    'anno': habilitacion.anno,
+                    'cuatrimestres': habilitacion.cuatrimestres,
+                    'tipo_docente': habilitacion.tipo_docente
+                })
+            })
+    
+    context = {
+        'encuestas_habilitadas': encuestas_habilitadas,
+        'host': f'{request.scheme}://{request.get_host()}',
+    }
+    return render(request, 'encuestas/index.html', context)
 
 @login_required
 @permission_required('dborrador.add_asignacion')
