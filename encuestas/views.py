@@ -28,11 +28,25 @@ logger = logging.getLogger(__name__)
 from functools import wraps
 
 @csrf_protect
-def login_view(request):
+def login_view(request, anno=None, cuatrimestres=None, tipo_docente=None):
 
-    params = request.session.get('parametros_encuesta')
+    params = None
+    
+    if anno is not None and cuatrimestres is not None and tipo_docente is not None:
+        params = {
+            'anno': anno,
+            'cuatrimestres': cuatrimestres,
+            'tipo_docente': tipo_docente
+        }
+        request.session['parametros_encuesta'] = params
+    
     if not params:
-        return redirect('encuestas:error_page')
+        params = request.session.get('parametros_encuesta')
+    
+    if not params:
+        if request.method == 'POST':
+            messages.error(request, 'No se especificó una encuesta. Por favor, selecciona una encuesta primero.')
+        return redirect('encuestas:index')
 
     anno = params.get('anno')
     cuatrimestres = params.get('cuatrimestres')
@@ -98,7 +112,8 @@ def verificar_codigo_view(request):
     params = request.session.get('parametros_encuesta')
 
     if not params:
-        return redirect('encuestas:error_page')
+        messages.info(request, 'Selecciona una encuesta para continuar.')
+        return redirect('encuestas:index')
     
     if not email:
         messages.error(request, 'Ingresa tu email primero.')
@@ -167,19 +182,18 @@ def verificar_codigo_view(request):
     return render(request, 'login/verificar_codigo.html', {'email': email})
 
 def logout_view(request):
-    auth_logout(request)
-    request.session.flush()
+    keys_to_remove = ['docente_id', 'email', 'docente_nombre', 'parametros_encuesta', 
+                      'email_verificacion', 'codigo_id']
+    for key in keys_to_remove:
+        if key in request.session:
+            del request.session[key]
     messages.success(request, 'Has cerrado sesión exitosamente.')
-    
     return redirect('encuestas:index')
 
-def error_view(request):
-    return render(request, 'login/error.html')
 
 def docente_autenticado_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
-        # Verificar que el docente está autenticado
         if 'docente_id' not in request.session:
             request.session['parametros_encuesta'] = {
                 'anno': kwargs.get('anno'),
@@ -190,7 +204,6 @@ def docente_autenticado_required(view_func):
         
         docente_id = request.session['docente_id']
         docente = Docente.objects.get(id=docente_id)
-        # Pasar el docente al contexto de la vista
         kwargs['docente_autenticado'] = docente
         
         return view_func(request, *args, **kwargs)
