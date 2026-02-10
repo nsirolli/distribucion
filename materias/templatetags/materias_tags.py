@@ -1,7 +1,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 
-from materias.models import CargoDedicacion, Turno
+from materias.models import CargoDedicacion
 from materias.misc import Mapeos
 
 register = template.Library()
@@ -32,4 +32,19 @@ def ordenados(lista):
 def cargas_ordenadas(turno):
     turno = turno.es_copia_de or turno
     cargas = sorted(turno.carga_set.all(), key=Mapeos.key_orden_por_tipo_docente)
-    return ' - '.join([f'{carga.docente.nombre}' for carga in cargas])
+
+    mapeo_display = {
+        'Profesor': 'Prof.',
+        'JTP': 'JTP',
+        'Ay1': 'Ay1',
+        'Ay2': 'Ay2', 
+    }
+
+    cargas_formateadas = []
+    for carga in cargas:
+        tipo_cargo = mapeo_display[Mapeos.tipo_de_carga(carga).value]
+        cargas_formateadas.append(f'{carga.docente.nombre} ({tipo_cargo})')
+    
+    return ' - '.join(cargas_formateadas)
+
+    # return ' - '.join([f'{carga.docente.nombre}' for carga in cargas])
