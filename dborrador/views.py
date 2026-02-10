@@ -228,6 +228,8 @@ def ver_distribucion(request, anno, cuatrimestre, intento_algoritmo, intento_man
                               for turno in turnos_ac.all()}
     context['todas_las_preferencias'] = preferencias
 
+    tipos_a_mostrar = [tipo for tipo in TipoDocentes if tipo != TipoDocentes.BI]
+
     materias = []
     for obligatoriedad, obligatoriedad_largo in obligatoriedades.items():
         tmaterias = Materia.objects.filter(obligatoriedad=obligatoriedad)
@@ -236,12 +238,12 @@ def ver_distribucion(request, anno, cuatrimestre, intento_algoritmo, intento_man
         for materia in tmaterias:
             mat_turnos = []
             for turno in sorted(turnos_ac.filter(materia=materia)):
-                turno.asignaciones = [(tipo, asignaciones_moviles[turno][tipo]) for tipo in TipoDocentes]
-                turno.cargas = [(tipo, asignaciones_fijas[turno][tipo]) for tipo in TipoDocentes]
+                turno.asignaciones = [(tipo, asignaciones_moviles[turno][tipo]) for tipo in tipos_a_mostrar]
+                turno.cargas = [(tipo, asignaciones_fijas[turno][tipo]) for tipo in tipos_a_mostrar]
                 turno.necesidades_insatisfechas = {tipo: necesidades_por_turno[turno][tipo] \
                                                          - len(asignaciones_moviles[turno][tipo]) \
                                                          - len(asignaciones_fijas[turno][tipo])
-                                                   for tipo in TipoDocentes}
+                                                   for tipo in tipos_a_mostrar}
                 turno.preferencias = list(preferencias_por_turno[turno])
                 mat_turnos.append(turno)
 
@@ -254,26 +256,30 @@ def ver_distribucion(request, anno, cuatrimestre, intento_algoritmo, intento_man
     cargas_de_asignaciones_moviles = {a.carga for a in Asignacion.validas_en(anno, cuatrimestre, intento)}
     cargas_sin_asignar = {tipo: sorted(set(cargas_sin_distribuir[tipo]) - cargas_de_asignaciones_moviles,
                                        key=lambda c: c.docente.apellido_nombre)
-                          for tipo in TipoDocentes}
+                          for tipo in tipos_a_mostrar}
+
     # agrego preferencias al dict
+
+    
     cargas_sin_asignar_anotadas = {tipo: [(carga, preferencias.filter(preferencia__docente=carga.docente,
                                                                       preferencia__tipo_docente=tipo.name).all())
                                           for carga in cargas]
-                                   for tipo, cargas in cargas_sin_asignar.items()}
+                                   for tipo, cargas in cargas_sin_asignar.items()
+                                   if tipo in tipos_a_mostrar}
 
     context['cambiar_docente_url'] = reverse('dborrador:cambiar_docente',
                                              args=(anno, cuatrimestre, intento.algoritmo, intento.manual, 0))[:-1]
 
     necesidades_por_tipo = {tipo: sum(necesidades_por_turno[turno][tipo] for turno in turnos_ac)
-                            for tipo in TipoDocentes}
+                            for tipo in tipos_a_mostrar}
     cargas_por_tipo = {tipo: sum(len(asignaciones_moviles[turno][tipo]) + len(asignaciones_fijas[turno][tipo]) for turno in turnos_ac) \
                              + len(cargas_sin_asignar[tipo])
-                       for tipo in TipoDocentes}
+                       for tipo in tipos_a_mostrar}
 
     context['info_por_tipo'] = {tipo: InformacionParaTemplate(cargas_sin_asignar_anotadas[tipo],
                                                               necesidades_por_tipo[tipo],
                                                               cargas_por_tipo[tipo])
-                                for tipo in TipoDocentes}
+                                for tipo in tipos_a_mostrar}
 
     return render(request, 'dborrador/distribucion.html', context)
 

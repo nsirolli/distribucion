@@ -102,7 +102,7 @@ Distribución del cuat {{ cuatrimestre.value }}, {{ anno }}. Intento {{ intento_
             {% for tipo, cargas_turno in turno.cargas %}
             {% if cargas_turno %}
             <li>
-              {{ tipo.value }}: {% for carga in cargas_turno %} {{ carga.docente.nombre }} {% endfor %}
+              {{ tipo.value }}: {% for carga in cargas_turno %} {{ carga.docente.nombre }}{% if not forloop.last %} - {% endif %} {% endfor %}
             </li>
             {% endif %}
             {% endfor %}

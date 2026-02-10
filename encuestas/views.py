@@ -34,7 +34,7 @@ def index(request):
 @permission_required('dborrador.add_asignacion')
 def administrar_habilitadas(request):
     context = {
-        'habilitadas': EncuestasHabilitadas.objects.all(),
+        'habilitadas': EncuestasHabilitadas.objects.all().order_by('-id') ,
         'host': f'{request.scheme}://{request.get_host()}',
     }
     return render(request, 'encuestas/administrar_habilitadas.html', context)

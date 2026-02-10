@@ -14,8 +14,9 @@
 </head>
 
 <body>
-    <a id=actuar href="{% url 'materias:administrar' %}#encuestas">Volver a administrar</a>
 
+    <a id=actuar href="{% url 'encuestas:agregar_habilitacion' %}">Habilitar otra encuesta</a>
+    <a id=actuar href="{% url 'materias:administrar' %}#encuestas">Volver a administrar</a>
     {% csrf_token %}
     <table>
         <thead>
@@ -49,7 +50,6 @@
         </tr>
         {% endfor %}
     </table>
-    <a id=actuar href="{% url 'encuestas:agregar_habilitacion' %}">Habilitar otra encuesta</a>
 
 <div class="borrar_habilitacion_dialogo" url="{% url 'encuestas:borrar_habilitacion' 31415926535 %}">
     ¿Confirmás que querés borrar esta habilitación?

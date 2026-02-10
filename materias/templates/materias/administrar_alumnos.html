@@ -15,6 +15,26 @@
     <h2>
         Administrar materias: alumnos y turnos en {{ anno }}, cuatrimestre {{ cuatrimestre.value }}
     </h2>
+    <style>
+        /* Solo agregamos un estilo para que la columna "es copia de" tenga ancho consistente */
+        select[name^="es_copia_de_"] {
+            min-width: 200px;
+            max-width: 250px;
+        }
+        .columna-copia {
+            padding-left: 10px;
+            vertical-align: top;
+        }
+        /* Para la cabecera de "copia de" */
+        .cabecera-copia {
+            text-align: left;
+            padding-left: 10px;
+        }
+        /* Para la cabecera de "aulas" */
+        .cabecera-aulas {
+            text-align: left;
+        }
+    </style>
 </head>
 
 <body>
@@ -53,28 +73,21 @@
                                 <th></th>
                                 <th></th>
                                 <th>alumnos</th>
-                                <th colspan="3">copia de:</th>
+                                <!-- COLUMNA "copia de:" - JUSTO DESPUÉS de alumnos -->
+                                <th class="cabecera-copia">copia de</th>
+                                <!-- TODAS las columnas de horarios/aulas con título "aulas" -->
+                                <th colspan="6" class="cabecera-aulas">aulas</th>
                             </tr>
                             {% for turno in turnos %}
                             <tr>
                                 <td class="fondo{{ turno.tipo }}">{{ turno.tipo }} {{ turno.numero }}{% if turno.subnumero %} {{ turno.subnumero }}{% endif %}</td>
                                 <td class="diayhora">{{ turno.horarios_info.diayhora }}</td>
                                 <td><input type="number" name="alumnos_{{ turno.id }}" min=0 max=1000 value={{ turno.alumnos }}></td>
-                                {% for horario in turno.horario_set.all|ordenados %}
-                                <td class="tabla_col_borde_izquierdo">{{ horario.dia }}: {{ horario.de_a }}</td>
-                                <td>Aula: <input type="text" name="aula_{{ horario.id }}" value="{{ horario.aula }}" maxlength=5></td>
-                                <td>Pab: <select name="pabellon_{{ horario.id }}">
-                                        {% for pabellon in pabellones %}
-                                        <option value="{{ pabellon.value.0 }}" {% if pabellon.value.0 == horario.pabellon %}selected{% endif %}>
-                                        {{ pabellon.value.1 }}
-                                        </option>
-                                        {% endfor %}
-                                    </select></td>
-                                {% endfor %}
-                                <!-- Nueva columna para seleccionar si es copia de otro turno de la MISMA materia -->
-                                <td class="tabla_col_borde_izquierdo">
+                                
+                                <!-- COLUMNA "ES COPIA DE": AHORA JUSTO DESPUÉS DE ALUMNOS -->
+                                <td class="tabla_col_borde_izquierdo columna-copia">
                                     <select name="es_copia_de_{{ turno.id }}">
-                                        <option value="">-- Ninguno --</option>
+                                        <option value=""></option>
                                         {% for otro_turno in turnos %}
                                             {% if otro_turno.id != turno.id %}
                                             <option value="{{ otro_turno.id }}" 
@@ -87,6 +100,26 @@
                                         {% endfor %}
                                     </select>
                                 </td>
+                                
+                                <!-- HORARIOS/AULAS: AHORA DESPUÉS DE "copia de" -->
+                                {% for horario in turno.horario_set.all|ordenados %}
+                                <td class="tabla_col_borde_izquierdo">{{ horario.dia }}: {{ horario.de_a }}</td>
+                                <td>Aula: <input type="text" name="aula_{{ horario.id }}" value="{{ horario.aula }}" maxlength=5></td>
+                                <td>Pab: <select name="pabellon_{{ horario.id }}">
+                                        {% for pabellon in pabellones %}
+                                        <option value="{{ pabellon.value.0 }}" {% if pabellon.value.0 == horario.pabellon %}selected{% endif %}>
+                                        {{ pabellon.value.1 }}
+                                        </option>
+                                        {% endfor %}
+                                    </select></td>
+                                {% endfor %}
+                                
+                                <!-- CELDAS VACÍAS DE RELLENO: Solo si tiene 1 horario (faltan 3 celdas) -->
+                                {% if turno.horario_set.count == 1 %}
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                {% endif %}
                             </tr>
                             {% endfor %}
                         </tbody>
