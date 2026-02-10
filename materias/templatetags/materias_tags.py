@@ -38,6 +38,7 @@ def cargas_ordenadas(turno):
         'JTP': 'JTP',
         'Ay1': 'Ay1',
         'Ay2': 'Ay2', 
+        'Bec/Inv': '',
     }
 
     cargas_formateadas = []
