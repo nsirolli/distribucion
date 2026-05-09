@@ -21,6 +21,8 @@ services:
     networks:
       - nginx_network
       - db_network
+    env_file:
+      - .env
 
   webtest:
     image: distribucion
@@ -36,6 +38,8 @@ services:
       - db
     networks:
       - db_network
+    env_file:
+      - .env
 
   bash:
     image: distribucion
@@ -46,6 +50,21 @@ services:
     networks:
       - db_network
 
+  bash_db:
+      image: distribucion
+      volumes:
+        - ${PWD}:/codigo_test/distribucion
+      working_dir: /codigo_test/distribucion
+      command: /bin/bash
+      ports:
+        - "8000:8000"
+      depends_on:
+        - db
+      networks:
+        - db_network
+      env_file:
+        - .env
+
   test:
     image: distribucion
     volumes:
@@ -54,7 +73,8 @@ services:
     entrypoint: python manage.py test
     networks:
       - db_network
-
+    env_file:
+      - .env
 
   nginx:
     image: nginx:1.17.2-alpine

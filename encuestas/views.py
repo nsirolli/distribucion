@@ -1,4 +1,3 @@
-# import ipdb
 from django.http import Http404, HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
@@ -84,14 +83,18 @@ def login_view(request, anno=None, cuatrimestres=None, tipo_docente=None):
             Saludos,
             Distribución DM
             '''
-            
-            send_mail(
-                subject,
-                message,
-                settings.DEFAULT_FROM_EMAIL,
-                [email],
-                fail_silently=False,
-            )
+
+            try:
+                send_mail(
+                    subject,
+                    message,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [email],
+                    fail_silently=False,
+                )
+                logger.info(f'Se envió el correo, con código {codigo_obj.codigo}')
+            except Exception as e:  # TODO: poner una excepción adecuada
+                logger.exception('No puedo mandar el correo')
             
             request.session['email_verificacion'] = email
             request.session['codigo_id'] = codigo_obj.id
