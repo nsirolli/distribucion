@@ -22,12 +22,19 @@ SECURE_SSL_REDIRECT = False
 CSRF_COOKIE_SECURE = False
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 12000
 
-EMAIL_HOST = 'localhost'
-EMAIL_PORT = 1025
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'distribucion@dm.uba.ar'
+EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASS')
+ 
+# EMAIL_HOST = 'localhost'
+# EMAIL_PORT = 1025
+# reemplazar estas dos por la siguiente para pruebas:
+# EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 LOGIN_URL = '/admin/login'
 ALLOWED_HOSTS = ['localhost']
-
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 

@@ -1,6 +1,9 @@
 from django.urls import path
 
 from . import views
+from django.contrib import admin
+from django.urls import include
+from encuestas.views import login_view, verificar_codigo_view, logout_view
 
 app_name = 'encuestas'
 urlpatterns = [
@@ -19,4 +22,7 @@ urlpatterns = [
          views.ver_resultados_de_encuestas, name='ver_resultados_de_encuestas'),
     path('encuestas_de_un_docente/<int:docente_id>/<int:anno>/<str:cuatrimestre>',
          views.encuestas_de_un_docente, name='encuestas_de_un_docente'),
+    path('login/', login_view, name='login'),
+    path('logout/', logout_view, name='logout'),
+    path('verificar-codigo/', verificar_codigo_view, name='verificar_codigo'),
 ]

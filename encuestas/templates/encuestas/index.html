@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+{% load bootstrap5 %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-75">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow border-0">
+                <div class="card-body p-4 p-md-5">
+                    <h2 class="text-center mb-4">Distribución docente DM</h2>
+                    
+                    <!-- Mensajes -->
+                    {% if messages %}
+                        {% for message in messages %}
+                            {% if message.tags == 'info' %}
+                                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% elif message.tags == 'success' %}
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    
+                    {% if encuestas_habilitadas %}
+                        <!-- Información general -->
+                        <div class="text-center mb-4">
+                            <p class="lead text-muted">
+                                {{ encuestas_habilitadas|length }} encuesta{{ encuestas_habilitadas|length|pluralize }} abierta{{ encuestas_habilitadas|length|pluralize }}
+                            </p>
+                        </div>
+                        
+                        <!-- Lista de encuestas -->
+                        <div class="row g-3">
+                            {% for encuesta in encuestas_habilitadas %}
+                            <div class="col-12">
+                                <div class="card question-card border-0 shadow-sm mb-3">
+                                    <div class="card-body p-4">
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div class="flex-grow-1">
+                                                <h5 class="card-title mb-1">
+                                                    {{ encuesta.nombre_tipo }}
+                                                </h5>
+                                                <!-- Texto descriptivo como en encuesta.html línea 45 -->
+                                                <h6 class="card-subtitle text-muted">
+                                                    {{ encuesta.nombre_cuatrimestres }} de {{ encuesta.anno }}
+                                                </h6>
+                                            </div>
+                                            <!-- Botón "disponible" eliminado -->
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <div class="row">
+                                                <div class="col-md-6 mb-2 mb-md-0">
+                                                    <small class="text-muted d-block">
+                                                        <i class="bi bi-calendar-plus me-1"></i>
+                                                        <strong>Desde:</strong> {{ encuesta.desde|date:"d/m/Y H:i" }}
+                                                    </small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <small class="text-muted d-block">
+                                                        <i class="bi bi-calendar-check me-1"></i>
+                                                        <strong>Hasta:</strong> {{ encuesta.hasta|date:"d/m/Y H:i" }}
+                                                    </small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="d-grid">
+                                            <a href="{{ encuesta.url }}" class="btn btn-primary btn-lg">
+                                                <i class="bi bi-pencil-square me-2"></i>
+                                                Completar
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        
+                    {% else %}
+                        <!-- Estado vacío -->
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="bi bi-clipboard-x text-muted" style="font-size: 4rem;"></i>
+                            </div>
+                            <h3 class="h4 text-muted mb-3">No hay encuestas habilitadas</h3>
+                            <p class="text-muted mb-4">
+                                Todas las encuestas están cerradas en este momento
+                            </p>
+                        </div>
+                    {% endif %}
+                    
+                </div>
+            </div>
+            
+            <!-- Información adicional -->
+            <div class="text-center mt-4">
+                <p class="text-muted">
+                    ¿Problemas para acceder? 
+                    <a href="mailto:distribucion@dm.uba.ar" class="text-decoration-none">
+                        Contactanos
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap Icons -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+
+<style>
+.min-vh-75 {
+    min-height: 75vh;
+}
+
+.card {
+    border-radius: 15px;
+}
+
+.question-card {
+    border-left: 4px solid #0d6efd;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.question-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    border-radius: 10px;
+}
+</style>
+{% endblock %}
