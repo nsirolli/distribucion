@@ -23,6 +23,12 @@ SECURE_SSL_REDIRECT = False
 CSRF_COOKIE_SECURE = True
 SESSION_COOKIE_SECURE = True
 
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'distribucion@dm.uba.ar'
+EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASS')
+
 LOGIN_URL = '/admin/login'
 ALLOWED_HOSTS = ['*']
 
