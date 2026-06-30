@@ -92,9 +92,9 @@ def login_view(request, anno=None, cuatrimestres=None, tipo_docente=None):
                     [email],
                     fail_silently=False,
                 )
-                logger.info(f'Se envió el correo, con código {codigo_obj.codigo}')
+                logger.info(f'Se envió el correo a {email}, con código {codigo_obj.codigo}')
             except Exception as e:  # TODO: poner una excepción adecuada
-                logger.exception('No puedo mandar el correo')
+                logger.exception(f'No puedo mandar el correo a {email}')
             
             request.session['email_verificacion'] = email
             request.session['codigo_id'] = codigo_obj.id
@@ -102,6 +102,9 @@ def login_view(request, anno=None, cuatrimestres=None, tipo_docente=None):
             messages.success(request, 'Se ha enviado un código de verificación a tu correo.')
             return redirect('encuestas:verificar_codigo')
             
+        except Docente.MultipleObjectsReturned:
+            docentes = [d.nombre for d in Docente.objects.filter(email=email)]
+            logger.exception(f'El correo {email} pertenece a más de un docente: a {docentes}')
         except Docente.DoesNotExist:
             messages.error(request, 'No existe un docente registrado con este correo.')
         except AssertionError:
