@@ -38,7 +38,32 @@
               var url = "{% url 'dborrador:espiar_distribucion' anno cuatrimestre.name intento_algoritmo 31415926535 %}";
               $(location).attr('href', url.replace('31415926535', ui.value));
             });
-          })
+
+            $("#popup_superposiciones").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 550,
+                buttons: {
+                    "Cerrar": function() {
+                        $(this).dialog("close");
+                    }
+                }
+            });
+
+            $("#ver_superposiciones").on("click", function(e) {
+                e.preventDefault();
+                $("#popup_superposiciones").html('<p style="text-align: center; color: #666; padding: 20px;">Analizando colisiones horarias...</p>');
+                $("#popup_superposiciones").dialog("open");
+
+                var url = "{% url 'dborrador:detectar_superposiciones_ajax' anno cuatrimestre.name intento_algoritmo intento_manual %}";
+
+                $.get(url, function(data) {
+                    $("#popup_superposiciones").html(data);
+                }).fail(function() {
+                    $("#popup_superposiciones").html('<p style="color:red; text-align:center; padding:20px;">Hubo un error al procesar los horarios.</p>');
+                });
+            });
+          });
         </script>
 
         <li>Año: {{ anno }}, <input type="hidden" name="anno" value="{{ anno }}">
@@ -104,6 +129,12 @@
         </li>
 
         <li>
+            <div id="actuar">
+                <a href="#" id="ver_superposiciones">Controlar superposiciones</a>
+            </div>
+        </li>
+
+        <li>
         <div id="actuar">
             <a href="{% url 'dborrador:exportar_csv' anno cuatrimestre.name intento_algoritmo intento_manual %}">Exportar la distribución</a>
         </div>
@@ -142,6 +173,10 @@
 
     <div class="actuar">
         <a href="{% url 'materias:administrar' %}#encuestas">Volver a: administrar</a>
+    </div>
+
+    <div id="popup_superposiciones" title="Control de superposiciones horarias" style="display:none;"></div>
+
     </div>
 
     </div>

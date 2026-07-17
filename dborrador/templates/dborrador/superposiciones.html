@@ -1,0 +1,30 @@
+<div style="max-height: 400px; overflow-y: auto; font-family: sans-serif;">
+    {% if docentes_con_conflictos %}
+        <p style="color: #d9534f; font-weight: bold;">Hay problemas con los siguientes docentes:</p>
+        <hr>
+        {% for item in docentes_con_conflictos %}
+            <div style="margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px dashed #ccc;">
+                <strong style="color: #337ab7;">{{ item.docente.apellido_nombre }}</strong>
+                <ul style="margin-top: 5px; padding-left: 20px;">
+                    {% for conflicto in item.conflictos %}
+                        <li style="margin-bottom: 8px;">
+                            <strong>Materias superpuestas:</strong>
+                            <br>• <em>{{ conflicto.turno1.str_corto }}</em>
+                            <br>• <em>{{ conflicto.turno2.str_corto }}</em>
+                            <br><span style="color: #a94442; font-size: 0.9em;">
+                                <strong>Horarios superpuestos:</strong>
+                                {% for h1, h2 in conflicto.cruces %}
+                                    <br>&nbsp;&nbsp;- {{ h1.get_dia_display }}: [{{ h1.de_a }}] y [{{ h2.de_a }}]
+                                {% endfor %}
+                            </span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p style="color: #5cb85c; font-weight: bold; text-align: center; padding: 20px 0;">
+            Ningún docente tiene horarios superpuestos.
+        </p>
+    {% endif %}
+</div>
