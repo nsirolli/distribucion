@@ -1,36 +1,87 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'encuestas/encuestas.css' %}">
+{% load bootstrap5 %}
 
-<head>
-    <h2>
-        Cambiar habilitación de encuestas
-    </h2>
-    <link rel="stylesheet" type="text/css" href="{% static 'dborrador/jquery-ui.min.css' %}">
-    <script src="{% static 'dborrador/jquery-1.12.4.min.js' %}"></script>
-    <script src="{% static 'dborrador/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'encuestas/scripts.js' %}"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css" integrity="sha256-DOS9W6NR+NFe1fUhEE0PGKY/fubbUCnOfTje2JMDw3Y=" crossorigin="anonymous" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js" integrity="sha256-FEqEelWI3WouFOo2VWP/uJfs1y8KJ++FLh2Lbqc8SJk=" crossorigin="anonymous"></script>
-</script>
-</head>
-
-<body>
-    <form action="{% url 'encuestas:cambiar_habilitacion' habilitacion.id %}" method="post">
-    {% csrf_token %}
-    {% for field in form %}
-        <div class="form-row">  {# Add a class for styling #}
-            {{ field.label_tag }} {{ field }}
-            {% if field.errors %}
-                <div class="errorlist">
-                    {{ field.errors }}
-                </div>
-            {% endif %}
+{% block content %}
+<div class="row my-4 justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <h2 class="card-title mb-4 fs-3">Cambiar habilitación de encuestas</h2>
+                
+                <form action="{% url 'encuestas:cambiar_habilitacion' habilitacion.id %}" method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {# 1. Renderizamos PRIMERO el campo de Tipo de Docente #}
+                    {% bootstrap_field form.tipo_docente %}
+                    
+                    {# 2. Renderizamos el resto de los campos salteando tipo_docente #}
+                    {% for field in form %}
+                        {% if field.name != 'tipo_docente' %}
+                            {% bootstrap_field field %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <div class="mt-4 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            Salvar
+                        </button>
+                        <a href="{% url 'encuestas:administrar_habilitadas' %}" class="btn btn-outline-secondary">
+                            Cancelar
+                        </a>
+                    </div>
+                </form>
+                
+            </div>
         </div>
-		</br>
-    {% endfor %}
-    <input type="submit" value="salvar">
-    </form>
-<p> No se puede dejar las opciones vacías para Verano; si no está entre los cuatrimestres en cuestión, sus opciones serán omitidas. </p>
-</body>
+    </div>
+</div>
+
+<link rel="stylesheet" type="text/css" href="{% static 'dborrador/jquery-ui.min.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.min.css" integrity="sha256-DOS9W6NR+NFe1fUhEE0PGKY/fubbUCnOfTje2JMDw3Y=" crossorigin="anonymous" />
+
+<script src="{% static 'dborrador/jquery-1.12.4.min.js' %}"></script>
+<script src="{% static 'dborrador/jquery-ui.min.js' %}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-datetimepicker/2.5.20/jquery.datetimepicker.full.min.js" integrity="sha256-FEqEelWI3WouFOo2VWP/uJfs1y8KJ++FLh2Lbqc8SJk=" crossorigin="anonymous"></script>
+<script src="{% static 'encuestas/scripts.js' %}"></script>
+
+<script>
+    $(document).ready(function() {
+        const $cuatrimestresField = $('#id_cuatrimestres'); 
+        const $opcionesVeranoContainers = $('[id*="verano"], [name*="verano"]').closest('.mb-3');
+
+        function toggleVeranoFields() {
+            let mostrarVerano = false;
+
+            if ($cuatrimestresField.is('select')) {
+                const val = $cuatrimestresField.val();
+                if (Array.isArray(val)) {
+                    mostrarVerano = val.some(v => v.includes('V'));
+                } else if (val) {
+                    mostrarVerano = val.includes('V');
+                }
+            } else {
+                const $checkedBoxes = $('input[name="cuatrimestres"]:checked');
+                $checkedBoxes.each(function() {
+                    if ($(this).val().includes('V')) {
+                        mostrarVerano = true;
+                    }
+                });
+            }
+
+            if (mostrarVerano) {
+                $opcionesVeranoContainers.slideDown(200);
+            } else {
+                $opcionesVeranoContainers.slideUp(200);
+            }
+        }
+
+        // Ejecutar al iniciar (esencial para edición ya que los campos vienen pre-poblados)
+        toggleVeranoFields();
+
+        $(document).on('change', 'input[name="cuatrimestres"], #id_cuatrimestres', function() {
+            toggleVeranoFields();
+        });
+    });
+</script>
+{% endblock %}

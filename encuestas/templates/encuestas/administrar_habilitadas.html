@@ -1,58 +1,161 @@
-<!DOCTYPE html>
+{% extends 'base.html' %}
 {% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'encuestas/encuestas.css' %}">
-<link rel="stylesheet" type="text/css" href="{% static 'materias/general.css' %}">
 
-<head>
-    <h2>
-        Habilitar/deshabilitar encuestas
-    </h2>
-    <link rel="stylesheet" type="text/css" href="{% static 'dborrador/jquery-ui.min.css' %}">
-    <script src="{% static 'dborrador/jquery-1.12.4.min.js' %}"></script>
-    <script src="{% static 'dborrador/jquery-ui.min.js' %}"></script>
-    <script src="{% static 'encuestas/scripts.js' %}"></script>
-</head>
+{% block content %}
+<div class="row my-4">
+    <div class="col">
+        <h2 class="mb-4">Habilitar/deshabilitar encuestas</h2>
+        
+        <div class="mb-4">
+            <a href="{% url 'encuestas:agregar_habilitacion' %}" class="btn btn-primary me-2">
+                <i class="bi bi-plus-circle"></i> Habilitar otra encuesta
+            </a>
+            <a href="{% url 'materias:administrar' %}#encuestas" class="btn btn-outline-secondary">
+                Volver a administrar
+            </a>
+        </div>
 
-<body>
+        {% csrf_token %}
+        
+        <div class="table-responsive bg-white p-3 rounded shadow-sm mb-4">
+            <table class="table table-hover align-middle" id="tabla-habilitadas">
+                <thead class="table-light">
+                    <tr>
+                        <th>Año</th>
+                        <th>Cuatrimestres</th>
+                        <th>Para</th>
+                        <th>Desde</th>
+                        <th>Hasta</th>
+                        <th class="text-center">En vigencia</th>
+                        <th>Cambiar</th>
+                        <th>Borrar</th>
+                        <th>Link</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for habi in habilitadas %}
+                    <tr class="fila-encuesta" data-anno="{{ habi.anno }}">
+                        <td class="col-anno">{{ habi.anno }}</td>
+                        <td>{{ habi.cuatrimestres_str }}</td>
+                        <td>{{ habi.tipo_str }}</td>
+                        <td><small class="text-muted">{{ habi.desde|date:"d/m/Y H:i" }}</small></td>
+                        <td><small class="text-muted">{{ habi.hasta|date:"d/m/Y H:i" }}</small></td>
+                        <td class="text-center">
+                            {% if habi.es_valida_ahora %}
+                                <span class="badge bg-success-subtle text-success fs-6">✔</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger fs-6">✘</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'encuestas:cambiar_habilitacion' habi.id %}" class="btn btn-sm btn-outline-warning">
+                                Cambiar
+                            </a>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-danger borrar_habilitacion" data-habilitacion="{{ habi.id }}">
+                                Borrar
+                            </button>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2" style="max-width: 300px;">
+                                <a href="{{ host }}{% url 'encuestas:encuesta' habi.anno habi.cuatrimestres habi.tipo_docente %}" 
+                                   class="text-break text-wrap url-texto" style="font-size: 0.875rem;">
+                                    {{ host }}{% url 'encuestas:encuesta' habi.anno habi.cuatrimestres habi.tipo_docente %}
+                                </a>
+                                <button class="btn btn-sm btn-light btn-copiar" 
+                                        data-url="{{ host }}{% url 'encuestas:encuesta' habi.anno habi.cuatrimestres habi.tipo_docente %}"
+                                        title="Copiar link">
+                                    📋
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-    <a id=actuar href="{% url 'encuestas:agregar_habilitacion' %}">Habilitar otra encuesta</a>
-    <a id=actuar href="{% url 'materias:administrar' %}#encuestas">Volver a administrar</a>
-    {% csrf_token %}
-    <table>
-        <thead>
-            <tr>
-                <th>Año</th>
-                <th>Cuatrimestres</th>
-                <th>Para</th>
-                <th>Desde</th>
-                <th>Hasta</th>
-                <th>En vigencia</th>
-                <th>Cambiar</th>
-                <th>Borrar</th>
-                <th>Link</th>
-            </tr>
-        </thead>
-        {% for habi in habilitadas %}
-        <tr>
-            <td>{{ habi.anno }}</td>
-            <td>{{ habi.cuatrimestres_str }}</td>
-            <td>{{ habi.tipo_str }}</td>
-            <td>{{ habi.desde|date:"d/m/Y H:i" }}</td>
-            <td>{{ habi.hasta|date:"d/m/Y H:i" }}</td>
-            <td>{% if habi.es_valida_ahora %}✔{% else %}✘{% endif %}</td>
-            <td><a id=actuar href="{% url 'encuestas:cambiar_habilitacion' habi.id %}">Cambiar</a></td>
-            <td><button id=actuar class="borrar_habilitacion" data-habilitacion="{{ habi.id }}">Borrar</td>
-            <td>
-                <a href="{{ host }}{% url 'encuestas:encuesta' habi.anno habi.cuatrimestres habi.tipo_docente %}">
-                    {{ host }}{% url 'encuestas:encuesta' habi.anno habi.cuatrimestres habi.tipo_docente %}
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-    </table>
+        <div class="d-flex justify-content-center mb-4">
+            <button id="btn-toggle-filtro" class="btn btn-outline-primary shadow-sm">
+                <i class="bi bi-eye-fill"></i> Ver todas las encuestas
+            </button>
+        </div>
 
-<div class="borrar_habilitacion_dialogo" url="{% url 'encuestas:borrar_habilitacion' 31415926535 %}">
+    </div>
+</div>
+
+<div class="borrar_habilitacion_dialogo" url="{% url 'encuestas:borrar_habilitacion' 31415926535 %}" style="display: none;">
     ¿Confirmás que querés borrar esta habilitación?
 </div>
 
-</body>
+<link rel="stylesheet" type="text/css" href="{% static 'dborrador/jquery-ui.min.css' %}">
+<script src="{% static 'dborrador/jquery-1.12.4.min.js' %}"></script>
+<script src="{% static 'dborrador/jquery-ui.min.js' %}"></script>
+<script src="{% static 'encuestas/scripts.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Lógica del Botón de Copiar ---
+        const botonesCopiar = document.querySelectorAll('.btn-copiar');
+        botonesCopiar.forEach(boton => {
+            boton.addEventListener('click', function() {
+                const url = this.getAttribute('data-url');
+                navigator.clipboard.writeText(url).then(() => {
+                    this.classList.remove('btn-light');
+                    this.classList.add('btn-success', 'text-white');
+                    
+                    setTimeout(() => {
+                        this.classList.remove('btn-success', 'text-white');
+                        this.classList.add('btn-light');
+                    }, 1200);
+                }).catch(err => {
+                    console.error('Error al copiar el link: ', err);
+                });
+            });
+        });
+    });
+
+    // --- Lógica del Filtro Temporal ---
+    $(document).ready(function() {
+        let mostrandoTodos = false;
+        const $filas = $('.fila-encuesta');
+        const $btnToggle = $('#btn-toggle-filtro');
+
+        let anioMaximo = new Date().getFullYear();
+        $filas.each(function() {
+            const anioFila = parseInt($(this).data('anno'));
+            if (anioFila > anioMaximo) {
+                anioMaximo = anioFila;
+            }
+        });
+        const anioLimite = anioMaximo - 1;
+
+        function aplicarFiltro() {
+            if (mostrandoTodos) {
+                $filas.show();
+                $btnToggle.html('<i class="bi bi-funnel-fill"></i> Mostrar solo últimos 2 años');
+                $btnToggle.removeClass('btn-outline-primary').addClass('btn-outline-secondary');
+            } else {
+                $filas.each(function() {
+                    const anioFila = parseInt($(this).data('anno'));
+                    if (anioFila >= anioLimite) {
+                        $(this).show();
+                    } else {
+                        $(this).hide();
+                    }
+                });
+                $btnToggle.html('<i class="bi bi-eye-fill"></i> Ver todas las encuestas');
+                $btnToggle.removeClass('btn-secondary').addClass('btn-outline-primary');
+            }
+        }
+
+        aplicarFiltro();
+
+        $btnToggle.on('click', function() {
+            mostrandoTodos = !mostrandoTodos;
+            aplicarFiltro();
+        });
+    });
+</script>
+{% endblock %}
