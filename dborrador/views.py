@@ -4,15 +4,16 @@ from time import monotonic
 from locale import strxfrm
 import csv
 
+
 from django.shortcuts import render
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Max
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required, login_required
-
+from django.template.loader import render_to_string
 
 from .models import Preferencia, Asignacion, Intento, IntentoRegistrado
 from .misc import Distribucion
@@ -147,8 +148,14 @@ def detectar_superposiciones_ajax(request, anno, cuatrimestre, intento_algoritmo
                 'conflictos': conflictos
             })
 
-    return render(request, 'dborrador/superposiciones.html', {
+    html_contenido = render_to_string('dborrador/superposiciones.html', {
         'docentes_con_conflictos': docentes_con_conflictos
+    }, request=request)
+
+    # 5. Devolvemos una respuesta JSON estructurada y limpia
+    return JsonResponse({
+        'hay_conflictos': len(docentes_con_conflictos) > 0,
+        'html': html_contenido
     })
 
 @login_required
