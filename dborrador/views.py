@@ -4,15 +4,16 @@ from time import monotonic
 from locale import strxfrm
 import csv
 
+
 from django.shortcuts import render
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.db import transaction
 from django.db.models import Max
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required, login_required
-
+from django.template.loader import render_to_string
 
 from .models import Preferencia, Asignacion, Intento, IntentoRegistrado
 from .misc import Distribucion
@@ -75,6 +76,87 @@ def _anno_cuat_tipos_context():
         'tipos': [t for t in TipoDocentes]}
     return context
 
+def _se_superponen(h1, h2):
+    """
+    Determina si dos objetos Horario entran en conflicto.
+    """
+    if h1.dia != h2.dia:
+        return False
+    # Regla de intervalos de tiempo
+    return max(h1.comienzo, h2.comienzo) < min(h1.final, h2.final)
+
+
+@login_required
+@permission_required('dborrador.add_asignacion')
+def detectar_superposiciones_ajax(request, anno, cuatrimestre, intento_algoritmo, intento_manual):
+    anno_cuat = AnnoCuatrimestre(anno, cuatrimestre)
+    intento = Intento(intento_algoritmo, intento_manual)
+
+    # 1. Traer asignaciones del borrador actual (móviles)
+    asignaciones_borrador = Asignacion.validas_en(anno, cuatrimestre, intento)\
+                                      .select_related('carga__docente', 'turno__materia')\
+                                      .prefetch_related('turno__horario_set')
+
+    # 2. Traer asignaciones fijas (ya consolidadas en materias.Carga)
+    asignaciones_fijas = Distribucion.ya_distribuidas_por_cargo(anno_cuat)
+
+    # 3. Agrupar turnos por docente
+    turnos_por_docente = defaultdict(set)
+
+    for asig in asignaciones_borrador:
+        if asig.carga.docente and asig.turno:
+            turnos_por_docente[asig.carga.docente].add(asig.turno)
+
+    for turno, cargos_dict in asignaciones_fijas.items():
+        for lista_cargas in cargos_dict.values():
+            for carga in lista_cargas:
+                if carga.docente:
+                    turnos_por_docente[carga.docente].add(turno)
+
+    docentes_con_conflictos = []
+
+    # 4. Encontrar colisiones
+    for docente, turnos_set in turnos_por_docente.items():
+        if len(turnos_set) < 2:
+            continue
+
+        turnos = list(turnos_set)
+        conflictos = []
+        horarios_por_turno = {t.id: list(t.horario_set.all()) for t in turnos}
+
+        for i in range(len(turnos)):
+            for j in range(i + 1, len(turnos)):
+                t1 = turnos[i]
+                t2 = turnos[j]
+
+                cruces = []
+                for h1 in horarios_por_turno[t1.id]:
+                    for h2 in horarios_por_turno[t2.id]:
+                        if _se_superponen(h1, h2):
+                            cruces.append((h1, h2))
+
+                if cruces:
+                    conflictos.append({
+                        'turno1': t1,
+                        'turno2': t2,
+                        'cruces': cruces
+                    })
+
+        if conflictos:
+            docentes_con_conflictos.append({
+                'docente': docente,
+                'conflictos': conflictos
+            })
+
+    html_contenido = render_to_string('dborrador/superposiciones.html', {
+        'docentes_con_conflictos': docentes_con_conflictos
+    }, request=request)
+
+    # 5. Devolvemos una respuesta JSON estructurada y limpia
+    return JsonResponse({
+        'hay_conflictos': len(docentes_con_conflictos) > 0,
+        'html': html_contenido
+    })
 
 @login_required
 @permission_required('dborrador.add_asignacion')

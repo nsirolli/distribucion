@@ -32,4 +32,6 @@ urlpatterns = [
          views.exportar_csv, name='exportar_csv'),
     path('exportar_excel/<int:anno>/<str:cuatrimestre>/<int:intento_algoritmo>/<int:intento_manual>',
          views.exportar_excel, name='exportar_excel'),
+    path('<int:anno>/<str:cuatrimestre>/<int:intento_algoritmo>/<int:intento_manual>/superposiciones-ajax/',
+         views.detectar_superposiciones_ajax, name='detectar_superposiciones_ajax'),
 ]

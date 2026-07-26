@@ -18,6 +18,7 @@
         <script src="{% static 'dborrador/jquery-1.12.4.min.js' %}"></script>
         <script src="{% static 'dborrador/jquery-ui.min.js' %}"></script>
         <script src="{% static 'dborrador/scripts.js' %}"></script>
+
         <script>
           $(function() {
             var selector_intento = $("#selector_intento").spinner();
@@ -25,20 +26,78 @@
             selector_intento_manual.slider(
               {min: 0, max: {{ max_intento_manual }}, value: {{ intento_manual }} });
 
-            selector_intento.spinner({min: 0, max: {{ max_intento_algoritmo }}});
-            selector_intento.spinner("value", {{ intento_algoritmo }} );
-            selector_intento.on("spin", function(event, ui) {
-              var url = "{% url 'dborrador:espiar_distribucion' anno cuatrimestre.name 31415926535 intento_manual %}";
-              if ({{ intento_algoritmo }} != ui.value) {
-                $(location).attr('href', url.replace('31415926535', ui.value));
-              }
+            selector_intento.spinner({min: 0, max: {{ max_intento_algoritmo }}, value: {{ intento_algoritmo }} });
+
+            // 1. Inicialización del popup de jQuery UI para superposiciones
+            var $popup = $("#popup_superposiciones").dialog({
+                autoOpen: false,
+                modal: true,
+                width: 550,
+                buttons: {
+                    "Cerrar": function() {
+                        $(this).dialog("close");
+                    }
+                }
             });
 
-            selector_intento_manual.on("slide", function(event, ui) {
-              var url = "{% url 'dborrador:espiar_distribucion' anno cuatrimestre.name intento_algoritmo 31415926535 %}";
-              $(location).attr('href', url.replace('31415926535', ui.value));
+            // 2. Acción SILENCIOSA al tocar el botón independiente "Controlar superposiciones"
+            $("#ver_superposiciones").on("click", function(e) {
+                e.preventDefault();
+
+                var url = "{% url 'dborrador:detectar_superposiciones_ajax' anno cuatrimestre.name intento_algoritmo intento_manual %}";
+                
+                $.getJSON(url, function(data) {
+                    $popup.html(data.html);
+                    $popup.dialog("option", "title", "Control de superposiciones horarias");
+                    $popup.dialog("option", "buttons", {
+                        "Cerrar": function() { $(this).dialog("close"); }
+                    });
+                    $popup.dialog("open");
+                });
             });
-          })
+
+            // =========================================================================
+            // 3. NUEVA LÓGICA DE PUBLICACIÓN SILENCIOSA BAJO DEMANDA
+            // =========================================================================
+            
+            // Primero, desactivamos por completo el comportamiento viejo de scripts.js sobre este botón
+            $( ".base_opciones #publicar" ).off("click");
+
+            // Ahora asociamos el flujo asincrónico limpio
+            $( ".base_opciones #publicar" ).on("click", function(e) {
+                e.preventDefault(); 
+
+                var url_chequeo = "{% url 'dborrador:detectar_superposiciones_ajax' anno cuatrimestre.name intento_algoritmo intento_manual %}";
+                
+                // Hace la validación en silencio en segundo plano
+                $.getJSON(url_chequeo, function(data) {
+                    if (data.hay_conflictos) {
+                        // ESCENARIO A: HAY PROBLEMAS. Mostramos las colisiones en el popup.
+                        $popup.html(data.html);
+                        $popup.dialog("option", "title", "Atención: Conflictos detectados antes de publicar");
+                        $popup.dialog("option", "buttons", {
+                            "Publicar de todas formas (Ignorar conflictos)": function() {
+                                $popup.dialog("close");
+                                // Modificamos el texto aclarando que se ignoran errores y abrimos el diálogo final
+                                $("#mandar_a_publicar p:first").html("<strong>Atención: Vas a publicar la distribución ignorando las superposiciones detectadas.</strong>");
+                                $("#mandar_a_publicar").dialog("open");
+                            },
+                            "Cancelar y revisar": function() {
+                                $popup.dialog("close");
+                                // No hace nada más, permitiendo revisar la grilla
+                            }
+                        });
+                        $popup.dialog("open");
+
+                    } else {
+                        // ESCENARIO B: TODO LIMPIO. Modificamos el texto del popup nativo para asegurar que se verificó con éxito
+                        $("#mandar_a_publicar p:first").html("<strong>Verificado: no hay errores de superposición.</strong> ¿Seguro querés publicar esta distribución?");
+                        $("#mandar_a_publicar").dialog("open");
+                    }
+                });
+            });
+
+          });
         </script>
 
         <li>Año: {{ anno }}, <input type="hidden" name="anno" value="{{ anno }}">
@@ -68,7 +127,7 @@
                 <form action="{% url 'dborrador:borrar' anno cuatrimestre.name %}" method="post">
                 {% csrf_token %}
                 <p> ¿Seguro querés borrar las asignaciones? </p>
-                <p> Eso borra todos los intentos de distribución no publicados </p>
+                <p> Eso borra todos los intentos de distribución no publicados. </p>
                 <button id="dale">Sí</button>
                 </form>
             </div>
@@ -101,6 +160,12 @@
               </p>
             </form>
           </div>
+        </li>
+
+        <li>
+            <div id="actuar">
+                <a href="#" id="ver_superposiciones">Controlar superposiciones</a>
+            </div>
         </li>
 
         <li>
@@ -142,6 +207,10 @@
 
     <div class="actuar">
         <a href="{% url 'materias:administrar' %}#encuestas">Volver a: administrar</a>
+    </div>
+
+    <div id="popup_superposiciones" title="Control de superposiciones horarias" style="display:none;"></div>
+
     </div>
 
     </div>

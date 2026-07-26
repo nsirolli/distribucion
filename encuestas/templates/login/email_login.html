@@ -70,7 +70,7 @@
             <div class="text-center mt-4">
                 <p class="text-muted">
                     ¿Problemas para acceder? 
-                    <a href="mailto:distribucion@dm.uba.ar" class="text-decoration-none">
+                    <a href="#" id="contact-link" class="text-decoration-none">
                         Contactanos
                     </a>
                 </p>
@@ -100,5 +100,21 @@
     border-radius: 10px;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const contactLink = document.getElementById('contact-link');
+    
+    if (contactLink) {
+        contactLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            const user = "distribucion";
+            const domain = "dm.uba.ar";
+            window.location.href = `mailto:${user}@${domain}`;
+        });
+    }
+});
+</script>
+
 {% endblock %}
 
