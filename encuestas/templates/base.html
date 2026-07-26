@@ -1,6 +1,6 @@
 {% load bootstrap5 %}
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="h-100">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -26,15 +26,13 @@
         }
     </style>
 </head>
-<body class="bg-light">
+<body class="bg-light d-flex flex-column min-vh-100">
 
-    <!-- Main Content -->
-    <div class="container">
+    <main class="container flex-grow-1 py-4">
         {% block content %}{% endblock %}
-    </div>
+    </main>
 
-    <!-- Enhanced Footer (same content, better presentation) -->
-    <footer class="mt-5 py-4 bg-dark">
+    <footer class="mt-auto py-4 bg-dark">
         <div class="container text-center">
             <p class="mb-0">
                 <span class="text-white">© 2026 </span>
