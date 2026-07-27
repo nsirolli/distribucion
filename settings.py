@@ -33,7 +33,7 @@ EMAIL_HOST_USER = 'distribucion@dm.uba.ar'
 EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASS')
 
 LOGIN_URL = '/admin/login'
-ALLOWED_HOSTS = ['encuestas.dm.uba.ar']
+ALLOWED_HOSTS = ['distribucion.dm.uba.ar']
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
