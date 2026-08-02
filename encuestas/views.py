@@ -1,27 +1,23 @@
-from django.http import Http404, HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse
 from django.utils import timezone
 from django.forms import ValidationError
 from django.contrib import messages
-from django.contrib.auth import login as auth_login, logout as auth_logout
 from django.contrib.auth.decorators import permission_required, login_required
-from django.core.validators import EmailValidator
 from django.core.mail import send_mail
 from django.db.models import Count, Q
 from django.conf import settings
 from django.views.decorators.csrf import csrf_protect
 
-from materias.models import Turno, Docente, Cargos, CargoDedicacion, TipoTurno, Cuatrimestres, TipoDocentes, AnnoCuatrimestre, Carga
+from materias.models import Turno, Docente, Cuatrimestres, TipoDocentes, AnnoCuatrimestre, Carga
 from materias.misc import Mapeos
-from encuestas.models import PreferenciasDocente, OtrosDatos, CargasPedidas, EncuestasHabilitadas, GrupoCuatrimestral, CodigoVerificacion
+from encuestas.models import PreferenciasDocente, OtrosDatos, CargasPedidas, EncuestasHabilitadas, CodigoVerificacion
 from encuestas.forms import HabilitacionDeEncuestaForm
 
 from locale import strxfrm
 from collections import Counter, namedtuple
-from enum import Enum
 import logging
-import logging.config
 logger = logging.getLogger(__name__)
 
 from functools import wraps

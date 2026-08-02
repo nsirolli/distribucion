@@ -1,24 +1,21 @@
 import logging
 from collections import defaultdict, namedtuple
-from time import monotonic
 from locale import strxfrm
 import csv
 
 
 from django.shortcuts import render
-from django.http import Http404, HttpResponseRedirect, HttpResponse, JsonResponse
+from django.http import HttpResponseRedirect, HttpResponse, JsonResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.db import transaction
-from django.db.models import Max
-from django.contrib import messages
 from django.contrib.auth.decorators import permission_required, login_required
 from django.template.loader import render_to_string
 
 from .models import Preferencia, Asignacion, Intento, IntentoRegistrado
 from .misc import Distribucion
-from materias.models import (Turno, Docente, Carga, Materia, Cuatrimestres, TipoMateria, TipoTurno,
-                             choice_enum, AnnoCuatrimestre, TipoDocentes,)
+from materias.models import (Turno, Carga, Materia, Cuatrimestres, TipoMateria, TipoTurno,
+                             AnnoCuatrimestre, TipoDocentes,)
 from materias.misc import Mapeos, NoTurno
 from materias.views import anno_y_cuatrimestre_de_request
 from encuestas.models import PreferenciasDocente, OtrosDatos

@@ -5,21 +5,20 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_time
 from django.contrib.auth.decorators import permission_required, login_required
-from django.db.models import Max, Min, Count, F
+from django.db.models import Max, Min, Count
 
 from locale import strxfrm
 from collections import Counter, namedtuple, defaultdict
 import re
 import logging
 import json
-import datetime
 
 
 from .models import (Materia, AliasDeMateria, Turno, Horario, Cuatrimestres, TipoMateria, TipoTurno,
                      TipoDocentes, Docente, CargoDedicacion, Carga, Pabellon, Dias, choice_enum,)
 from .misc import Mapeos, NoTurno
 from .forms import DocenteForm, MateriaForm
-from encuestas.models import PreferenciasDocente, OtrosDatos, CargasPedidas
+from encuestas.models import OtrosDatos, CargasPedidas
 
 
 logger = logging.getLogger(__name__)
