@@ -12,10 +12,13 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # seguridad
 DEBUG = False
-SECRET_KEY = get_random_secret_key()
+SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_BROWSER_XSS_FILTER = True
 DATA_UPLOAD_MAX_NUMBER_FIELDS = 12000
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
 
 SESSION_ENGINE = 'django.contrib.sessions.backends.file'
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
@@ -30,7 +33,7 @@ EMAIL_HOST_USER = 'distribucion@dm.uba.ar'
 EMAIL_HOST_PASSWORD = os.environ.get('GMAIL_PASS')
 
 LOGIN_URL = '/admin/login'
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['distribucion.dm.uba.ar']
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 

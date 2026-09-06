@@ -196,11 +196,23 @@ def logout_view(request):
 def docente_autenticado_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
+        # 1. Obtener parámetros de la URL
+        anno = kwargs.get('anno')
+        cuatrimestres = kwargs.get('cuatrimestres')
+        tipo_docente = kwargs.get('tipo_docente')
+
+        # 2. Verificar habilitación ANTES de chequear el login
+        if anno and cuatrimestres and tipo_docente:
+            if not EncuestasHabilitadas.esta_habilitada(anno, cuatrimestres, tipo_docente, timezone.now()):
+                messages.error(request, 'La encuesta a la que intentaste acceder no está habilitada.')
+                return redirect('encuestas:index')
+                
+        # 3. Si está habilitada pero no hay sesión, redirigir al login
         if 'docente_id' not in request.session:
             request.session['parametros_encuesta'] = {
-                'anno': kwargs.get('anno'),
-                'cuatrimestres': kwargs.get('cuatrimestres'),
-                'tipo_docente': kwargs.get('tipo_docente'),
+                'anno': anno,
+                'cuatrimestres': cuatrimestres,
+                'tipo_docente': tipo_docente,
             }
             return redirect('encuestas:login')
         
@@ -210,6 +222,7 @@ def docente_autenticado_required(view_func):
         
         return view_func(request, *args, **kwargs)
     return _wrapped_view
+
 
 
 def index(request):
