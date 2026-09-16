@@ -1,6 +1,3 @@
-version: '3.4'
-# necesario en web24
-
 services:
   db:
     image: postgres:11.2

@@ -1,6 +1,9 @@
-FROM python:3.7.17-bullseye
+FROM python:3.7.17-slim-bookworm
 
 ENV PYTHONUNBUFFERED 1
+
+ARG DJANGO_SECRET_KEY=dummy-key-for-building-static-files
+ENV DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
 
 RUN mkdir /codigo
 WORKDIR /codigo

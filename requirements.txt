@@ -3,7 +3,7 @@ django-extensions
 bs4
 coloredlogs
 psycopg2-binary
-django-simple-history
+django-simple-history==2.12.0
 xlwt
 gunicorn
 ipdb
