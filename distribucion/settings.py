@@ -38,6 +38,8 @@ ALLOWED_HOSTS = ['localhost']
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 INSTALLED_APPS = [
     'materias.apps.MateriasConfig',
     'encuestas.apps.EncuestasConfig',

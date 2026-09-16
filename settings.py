@@ -37,6 +37,8 @@ ALLOWED_HOSTS = ['distribucion.dm.uba.ar']
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
+
 INSTALLED_APPS = [
     'materias.apps.MateriasConfig',
     'encuestas.apps.EncuestasConfig',
