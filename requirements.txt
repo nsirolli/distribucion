@@ -1,9 +1,9 @@
-Django==3.2.25
+Django==4.0.10
 django-extensions
 bs4
 coloredlogs
 psycopg2-binary
-django-simple-history==3.0.0
+django-simple-history==3.1.1
 xlwt
 gunicorn
 ipdb
