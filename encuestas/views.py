@@ -278,8 +278,9 @@ def agregar_habilitacion(request):
             form.save()
             return HttpResponseRedirect(reverse('encuestas:administrar_habilitadas'))
     else:
-        context = {'form': HabilitacionDeEncuestaForm()}
-        return render(request, 'encuestas/agregar_habilitacion.html', context)
+        form = HabilitacionDeEncuestaForm()
+    context = {'form': form}
+    return render(request, 'encuestas/agregar_habilitacion.html', context)
 
 
 @login_required

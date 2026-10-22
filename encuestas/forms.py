@@ -5,10 +5,19 @@ from .models import EncuestasHabilitadas
 
 DateTimeInput = partial(widgets.DateTimeInput, {'class': 'datepicker'}, format=("%d/%m/%Y %H:%M"))
 
+FORMATOS_FECHA = ['%d/%m/%Y %H:%M', '%d/%m/%Y %H:%M:%S', '%d/%m/%Y']
+
+
 class HabilitacionDeEncuestaForm(ModelForm):
 
-    desde = DateTimeField(widget=DateTimeInput(), input_formats=['%d/%m/%Y %H:%M', '%d/%m/%Y %H:%M:%S', '%d/%m/%Y'])
-    hasta = DateTimeField(widget=DateTimeInput(), input_formats=['%d/%m/%Y %H:%M'])
+    desde = DateTimeField(
+        widget=DateTimeInput(format='%d/%m/%Y %H:%M', attrs={'class': 'datepicker', 'autocomplete': 'off'}),
+        input_formats=FORMATOS_FECHA,
+    )
+    hasta = DateTimeField(
+        widget=DateTimeInput(format='%d/%m/%Y %H:%M', attrs={'class': 'datepicker', 'autocomplete': 'off'}),
+        input_formats=FORMATOS_FECHA,
+    )
 
     class Meta:
         model = EncuestasHabilitadas

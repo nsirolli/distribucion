@@ -11,7 +11,18 @@
                 
                 <form action="{% url 'encuestas:agregar_habilitacion' %}" method="post" novalidate>
                     {% csrf_token %}
-                    
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger" role="alert">
+                            <strong>No se pudo guardar la habilitación.</strong>
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% empty %}
+                                <div>Revisá los campos marcados en rojo.</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %} 
+
                     {# 1. Renderizamos PRIMERO el campo de Tipo de Docente #}
                     {% bootstrap_field form.tipo_docente %}
                     
