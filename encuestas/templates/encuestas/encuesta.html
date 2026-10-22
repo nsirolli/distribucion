@@ -78,9 +78,9 @@
       </h3>
 
       <div class="mb-3">
-        <span class="form-label">Cantidad de turnos que tiene que cubrir en este período:</span>
+        <span class="form-label">Cantidad de turnos que tiene que cubrir:</span>
         <strong class="ms-2">{% if cuatrimestre.name == 'P' %}{{ cargas_tieneP }}{% elif cuatrimestre.name == 'S' %}{{ cargas_tieneS }}{% else %}{{ cargas_tieneV }}{% endif %}</strong>
-        <small class="text-muted ms-2">Según nuestros registros</small>
+        <small class="text-muted ms-2">(según nuestros registros)</small>
       </div>
 
       <div class="mb-3">
