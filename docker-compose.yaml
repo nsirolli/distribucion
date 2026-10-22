@@ -1,8 +1,6 @@
 services:
   db:
-    image: postgres:12.22
-    environment:
-      - POSTGRES_HOST_AUTH_METHOD=trust
+    image: postgres:11.2
     volumes:
       - distribucion_pgdata:/var/lib/postgresql/data
     networks:
