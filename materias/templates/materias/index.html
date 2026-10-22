@@ -9,8 +9,8 @@
 <div class="seccion">{{ obligatoriedad }}</div>
 
 {% for materia, turnos in materias %}
+    <h4>{{ materia|upper }}</h4>
     <table class="horarios">
-        <caption>{{ materia|upper }}</caption>
         <tbody>
             {% for turno in turnos %}
             <tr>
