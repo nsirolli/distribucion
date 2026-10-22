@@ -3,8 +3,6 @@ from functools import partial
 
 from .models import EncuestasHabilitadas
 
-DateTimeInput = partial(widgets.DateTimeInput, {'class': 'datepicker'}, format=("%d/%m/%Y %H:%M"))
-
 FORMATOS_FECHA = ['%d/%m/%Y %H:%M', '%d/%m/%Y %H:%M:%S', '%d/%m/%Y']
 
 
