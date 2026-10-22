@@ -381,7 +381,6 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente, docente):
                                             tipo_docente=tipo_docente,
                                             fecha_encuesta=fecha_encuesta, comentario=datos['comentario'],
                                             email=email, telefono=telefono,
-                                            cargas_declaradas=int(datos['cargas_declaradas'])
                                             )
 
     #  PreferenciasDocente
@@ -415,7 +414,6 @@ def checkear_y_salvar(datos, anno, cuatrimestres, tipo_docente, docente):
     return opciones, otros_datos, pedidas
 
 
-DocenteParaEncuesta = namedtuple('DocenteParaEncuesta', ['id', 'nombre'])
 TurnoParaEncuesta = namedtuple('TurnoParaEncuesta', ['id', 'texto', 'dificil_de_cubrir', 'no_elegible'])
 OpcionesParaEncuesta = namedtuple('OpcionesParaEncuesta', ['numero', 'lista_corta', 'turno_elegido', 'peso'])
 OpcionesPorCuatrimestre = namedtuple('OpcionesPorCuatrimestre', ['opciones', 'turnos'])
@@ -424,15 +422,6 @@ def _obtener_docentes_habilitados(anno, cuatrimestres, tipo_docente):
     tipo = TipoDocentes[tipo_docente]
     docentes_habilitados = Mapeos.docentes_de_tipo(tipo, anno, cuatrimestres)
     return docentes_habilitados
-
-def _generar_docentes(anno, cuatrimestres, tipo_docente):
-    tipo = TipoDocentes[tipo_docente]
-    docentes = [DocenteParaEncuesta(-1, '')]
-    docentes += [DocenteParaEncuesta(docente.id, docente.apellido_nombre)
-                 for docente in sorted(Mapeos.docentes_de_tipo(tipo, anno, cuatrimestres),
-                                       key=lambda d: strxfrm(d.apellido_nombre))]
-    return docentes
-
 
 def _generar_contexto(anno, cuatrimestre, tipo_docente, cuatrimestres):
     tipo = TipoDocentes[tipo_docente]
@@ -573,7 +562,6 @@ def encuesta(request, anno, cuatrimestres, tipo_docente, docente_autenticado=Non
         'docente': docente,  # Ahora solo un docente, no una lista
         'docente_nombre': getattr(docente, 'nombre', 'Docente'),
         #login
-        'docentes': _generar_docentes(anno, cuatrimestres, tipo_docente),
         'opciones_por_cuatrimestre': opciones_por_cuatrimestre,
         'anno': anno,
         'cuatrimestres': cuatrimestres,
