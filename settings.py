@@ -113,7 +113,7 @@ LANGUAGE_CODE = 'es-ar'
 TIME_ZONE = 'America/Argentina/Buenos_Aires'
 USE_I18N = True
 USE_TZ = True
-STATIC_URL = '/static/'
+STATIC_URL = 'https://distribucion.dm.uba.ar/static/'
 
 LOGGING = {
     'version': 1,
