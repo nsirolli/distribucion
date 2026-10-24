@@ -4,12 +4,11 @@
 {% load materias_tags %}
 <link rel="stylesheet" type="text/css" href="{% static 'materias/horarios.css' %}">
 
-
 {% for obligatoriedad, materias in turnos_por_obligatoriedad %}
-<div class="seccion">{{ obligatoriedad }}</div>
+<h4 class="seccion">{{ obligatoriedad }}</h4>
 
 {% for materia, turnos in materias %}
-    <h4 style="margin-top: 1.5rem; font-weight: bold;">{{ materia|upper }}</h4>
+    <h5 class="titulo-materia">{{ materia|upper }}</h5>
     <table class="horarios">
         <tbody>
             {% for turno in turnos %}

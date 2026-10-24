@@ -78,6 +78,14 @@ table caption
   text-align: left;
 }
 
+h5.titulo-materia
+{
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 1.5rem;
+  margin-bottom: 5px;
+}
+
 td.fondoT
 {
   background-color: #2C60BA;
