@@ -13,12 +13,14 @@
     <table class="horarios">
         <tbody>
             {% for turno in turnos %}
+            {% with info=turno.horarios_info %}
             <tr>
-                <td class="fondo{{ turno.tipo }}">{{ turno.horarios_info.tipoynumero }}{% if turno.subnumero %} {{ turno.subnumero }}{% endif %}</td>
-                <td class="diayhora">{{ turno.horarios_info.diayhora }}</td>
+                <td class="fondo{{ turno.tipo }}">{{ info.tipoynumero }}{% if turno.subnumero %} {{ turno.subnumero }}{% endif %}</td>
+                <td class="diayhora">{{ info.diayhora }}</td>
                 <td class="datosdoc">{{ turno|cargas_ordenadas }}</td>
-                <td class="aula">Aula: {{ turno.horarios_info.aula }}</td>
+                <td class="aula">Aula: {{ info.aula }}</td>
             </tr>
+            {% endwith %}
             {% endfor %}
         </tbody>
     </table>

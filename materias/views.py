@@ -5,7 +5,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_time
 from django.contrib.auth.decorators import permission_required, login_required
-from django.db.models import Max, Min, Count
+from django.db.models import Max, Min, Count, Prefetch
 
 from locale import strxfrm
 from collections import Counter, namedtuple, defaultdict
@@ -97,11 +97,18 @@ def por_anno_y_cuatrimestre(request, anno_cuat):
     except ValueError as e:
         raise Http404(e.args[0])
     else:
-        turnos_ac = Turno.objects.filter(anno=anno, cuatrimestre=cuat).order_by('materia')
+        cargas = Carga.objects.select_related('docente')
+        turnos_ac = list(Turno.objects
+                         .filter(anno=anno, cuatrimestre=cuat)
+                         .select_related('materia', 'es_copia_de')
+                         .prefetch_related('horario_set',
+                                           Prefetch('carga_set', queryset=cargas),
+                                           Prefetch('es_copia_de__carga_set', queryset=cargas))
+                         .order_by('materia'))
         turnos = []
         for tipo, tipo_largo in TIPO_DICT.items():
             turnos_de_tipo = [(t.materia.nombre, t.clave_para_ordenar(), t)
-                              for t in turnos_ac.filter(materia__obligatoriedad=tipo.name).all()]
+                              for t in turnos_ac if t.materia.obligatoriedad == tipo.name]
             materias_de_tipo = defaultdict(list)
             # aqui se usa que los dict quedan ordenados por momento de inserción y por eso las materias quedan ordenadas
             for materia_nombre, clave, turno in turnos_de_tipo:
