@@ -17,7 +17,8 @@ class Distribucion:
         ret = {t: defaultdict(list) for t in turnos}
 
         asignaciones = Asignacion.validas_en(ac.anno, ac.cuatrimestre, intento) \
-                                 .filter(turno__anno=ac.anno, turno__cuatrimestre=ac.cuatrimestre)
+                                 .filter(turno__anno=ac.anno, turno__cuatrimestre=ac.cuatrimestre) \
+                                 .select_related('turno', 'carga__docente')
         for asignacion in asignaciones:
             tipo = TipoDocentes[asignacion.cargo_que_ocupa]
             ret[asignacion.turno][tipo].append(asignacion)
@@ -26,19 +27,24 @@ class Distribucion:
     @classmethod
     def ya_distribuidas_por_cargo(cls, ac):
         '''AnnoCuatrimestre -> {Turno -> TipoDocentes -> [Asignacion]}'''
-        ret = {}
-        for turno in Turno.objects.filter(anno=ac.anno, cuatrimestre=ac.cuatrimestre):
-            ret[turno] = defaultdict(list)
-            for carga in turno.carga_set.all():
-                tipo = Mapeos.tipo_de_carga(carga)
-                ret[turno][tipo].append(carga)
+        turnos = Turno.objects.filter(anno=ac.anno, cuatrimestre=ac.cuatrimestre)
+        ret = {t: defaultdict(list) for t in turnos}
+        turnos_por_id = {t.id: t for t in ret}
+
+        cargas = Carga.objects.filter(turno__anno=ac.anno, turno__cuatrimestre=ac.cuatrimestre) \
+                              .select_related('docente')
+        for carga in cargas:
+            turno = turnos_por_id[carga.turno_id]
+            carga.turno = turno  # como hacía turno.carga_set.all(): evita volver a consultar el turno
+            ret[turno][Mapeos.tipo_de_carga(carga)].append(carga)
         return ret
 
     @classmethod
     def no_distribuidas_por_cargo(cls, ac):
         '''AnnoCuatrimestre -> {TipoDocentes -> [Carga]}'''
         ret = defaultdict(list)
-        cargas = Carga.objects.filter(anno=ac.anno, cuatrimestre=ac.cuatrimestre, turno__isnull=True)
+        cargas = Carga.objects.filter(anno=ac.anno, cuatrimestre=ac.cuatrimestre, turno__isnull=True) \
+                              .select_related('docente')
         for carga in cargas:
             tipo = Mapeos.tipo_de_carga(carga)
             ret[tipo].append(carga)

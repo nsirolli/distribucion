@@ -80,11 +80,11 @@ Distribución del cuat {{ cuatrimestre.value }}, {{ anno }}. Intento {{ intento_
 <table class="contentbold">
   <caption>{{ materia.nombre.upper }}</caption>
   <tbody>
-    {% for turno in turnos %}
+    {% for turno in turnos %}{% with info=turno.horarios_info %}
     <tr>
 
       <td class="fondo{{ turno.tipo }}">
-        <div class="tooltip">{{ turno.horarios_info.tipoynumero }}
+        <div class="tooltip">{{ info.tipoynumero }}
           <span class="tooltiptext">
             <span class="titulo">Docentes que lo pidieron:</span>
             <ul>{% for preferencia in turno.preferencias %}
@@ -95,7 +95,7 @@ Distribución del cuat {{ cuatrimestre.value }}, {{ anno }}. Intento {{ intento_
           </span>
         </div>
       </td>
-      <td class="diayhora">{{ turno.horarios_info.diayhora }}</td>
+      <td class="diayhora">{{ info.diayhora }}</td>
       <td class="datosdoc">
         <div class="cargas_fijas">
           <ul>
@@ -122,7 +122,7 @@ Distribución del cuat {{ cuatrimestre.value }}, {{ anno }}. Intento {{ intento_
                           <span class="tooltiptext">
                               <span class="titulo">Encuesta de {{ asignacion.carga.docente }}:</span>
                               <ul>
-                                  {% for preferencia in asignacion.carga.docente|sus_preferencias_en:todas_las_preferencias|para_tipo_de_carga:asignacion.carga %}
+                                  {% for preferencia in asignacion.preferencias %}
                                   <li>{{ preferencia.preferencia.turno.str_corto }}
                                       ({{preferencia.peso_normalizado|floatformat:4}})
                                   </li>
@@ -154,7 +154,7 @@ Distribución del cuat {{ cuatrimestre.value }}, {{ anno }}. Intento {{ intento_
       </td>
     </tr>
 
-    {% endfor %}
+    {% endwith %}{% endfor %}
   </tbody>
 </table>
 {% endif %}
